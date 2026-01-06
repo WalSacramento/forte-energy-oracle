@@ -1,0 +1,60 @@
+# Dependencies
+node_modules/
+oracle-nodes/node_modules/
+mock-hems/node_modules/
+
+# Hardhat files
+cache/
+artifacts/
+typechain-types/
+
+# Coverage
+coverage/
+coverage.json
+
+# Environment
+.env
+.env.local
+.env.*.local
+.env.testnet
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build outputs
+dist/
+build/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Test results
+performance/results/*.json
+performance/results/*.html
+gas-report.txt
+results/
+deployments/*.json
+!deployments/.gitkeep
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Temporary fix documentation and AI-generated files
+NONCE-FIX*.md
+CORRECOES-K6.md
+CLAUDE.md
+EAON_Paper_Checklist_Responses.md
+RESULTADOS-TESTES-TERMIMAL.md
+.env.testnet.docker
+
