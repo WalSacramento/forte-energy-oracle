@@ -1,0 +1,10 @@
+{
+  "rpcUrl": "http://localhost:8545",
+  "hemsApiUrl": "http://localhost:3000",
+  "timeout": 5000,
+  "retries": 3,
+  "retryDelay": 1000,
+  "logLevel": "info"
+}
+
+
