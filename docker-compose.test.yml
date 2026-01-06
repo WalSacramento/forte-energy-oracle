@@ -1,0 +1,63 @@
+version: '3.8'
+
+# Test-specific Docker Compose configuration
+# Use with: docker-compose -f docker-compose.test.yml up --abort-on-container-exit
+
+services:
+  hardhat-node:
+    build:
+      context: .
+      dockerfile: docker/hardhat/Dockerfile
+    container_name: eaon-hardhat-test
+    ports:
+      - "8545:8545"
+    networks:
+      - eaon-test-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8545"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mock-hems:
+    build:
+      context: ./mock-hems
+      dockerfile: Dockerfile
+    container_name: eaon-hems-test
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=test
+    networks:
+      - eaon-test-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Test runner
+  test-runner:
+    build:
+      context: .
+      dockerfile: docker/hardhat/Dockerfile
+    container_name: eaon-test-runner
+    environment:
+      - HARDHAT_NETWORK=localhost
+      - RPC_URL=http://hardhat-node:8545
+      - HEMS_API_URL=http://mock-hems:3000
+    depends_on:
+      hardhat-node:
+        condition: service_healthy
+      mock-hems:
+        condition: service_healthy
+    networks:
+      - eaon-test-network
+    command: ["npm", "test"]
+
+networks:
+  eaon-test-network:
+    driver: bridge
+
+

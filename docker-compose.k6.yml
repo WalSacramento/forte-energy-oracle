@@ -1,0 +1,196 @@
+services:
+  # ========================================
+  # Hardhat Local Blockchain
+  # ========================================
+  hardhat:
+    build:
+      context: .
+      dockerfile: docker/hardhat/Dockerfile
+    container_name: eaon-k6-hardhat
+    ports:
+      - "8545:8545"
+    command: npx hardhat node --hostname 0.0.0.0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8545"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks:
+      - eaon-k6
+    volumes:
+      - hardhat-data:/app/artifacts
+      - hardhat-cache:/app/cache
+      - ./deployments:/app/deployments
+
+  # ========================================
+  # Mock HEMS API (IoT Layer)
+  # ========================================
+  hems-api:
+    build:
+      context: ./mock-hems
+      dockerfile: Dockerfile
+    container_name: eaon-k6-hems
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      BASE_READING: 5000
+      VARIANCE_PERCENT: 2
+      LOG_LEVEL: info
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    networks:
+      - eaon-k6
+
+  # ========================================
+  # Oracle Node 1 (Prosumer)
+  # ========================================
+  oracle-1:
+    build:
+      context: ./oracle-nodes
+      dockerfile: Dockerfile
+    container_name: eaon-k6-oracle-1
+    depends_on:
+      hardhat:
+        condition: service_healthy
+      hems-api:
+        condition: service_healthy
+    environment:
+      NODE_ID: oracle-1
+      NODE_TYPE: prosumer
+      # Hardhat account #1 (0x70997970C51812dc3A010C7d01b50e0d17dc79C8)
+      PRIVATE_KEY: "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d"
+      RPC_URL: http://hardhat:8545
+      HEMS_API_URL: http://hems-api:3000
+      CONTRACT_ADDRESS: ${CONTRACT_ADDRESS:-}
+      PORT: 4001
+      LOG_LEVEL: info
+    volumes:
+      - ./deployments:/app/deployments:ro
+    ports:
+      - "4001:4001"
+    networks:
+      - eaon-k6
+    restart: unless-stopped
+
+  # ========================================
+  # Oracle Node 2 (Consumer)
+  # ========================================
+  oracle-2:
+    build:
+      context: ./oracle-nodes
+      dockerfile: Dockerfile
+    container_name: eaon-k6-oracle-2
+    depends_on:
+      hardhat:
+        condition: service_healthy
+      hems-api:
+        condition: service_healthy
+    environment:
+      NODE_ID: oracle-2
+      NODE_TYPE: consumer
+      # Hardhat account #2 (0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC)
+      PRIVATE_KEY: "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a"
+      RPC_URL: http://hardhat:8545
+      HEMS_API_URL: http://hems-api:3000
+      CONTRACT_ADDRESS: ${CONTRACT_ADDRESS:-}
+      PORT: 4002
+      LOG_LEVEL: info
+    volumes:
+      - ./deployments:/app/deployments:ro
+    ports:
+      - "4002:4002"
+    networks:
+      - eaon-k6
+    restart: unless-stopped
+
+  # ========================================
+  # Oracle Node 3 (DSO)
+  # ========================================
+  oracle-3:
+    build:
+      context: ./oracle-nodes
+      dockerfile: Dockerfile
+    container_name: eaon-k6-oracle-3
+    depends_on:
+      hardhat:
+        condition: service_healthy
+      hems-api:
+        condition: service_healthy
+    environment:
+      NODE_ID: oracle-3
+      NODE_TYPE: dso
+      # Hardhat account #3 (0x90F79bf6EB2c4f870365E785982E1f101E93b906)
+      PRIVATE_KEY: "0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6"
+      RPC_URL: http://hardhat:8545
+      HEMS_API_URL: http://hems-api:3000
+      CONTRACT_ADDRESS: ${CONTRACT_ADDRESS:-}
+      PORT: 4003
+      LOG_LEVEL: info
+    volumes:
+      - ./deployments:/app/deployments:ro
+    ports:
+      - "4003:4003"
+    networks:
+      - eaon-k6
+    restart: unless-stopped
+
+  # ========================================
+  # Test Orchestrator API (k6 Target)
+  # ========================================
+  test-orchestrator:
+    build:
+      context: ./test-orchestrator
+      dockerfile: Dockerfile
+    container_name: eaon-k6-orchestrator
+    depends_on:
+      hardhat:
+        condition: service_healthy
+      hems-api:
+        condition: service_healthy
+      oracle-1:
+        condition: service_started
+      oracle-2:
+        condition: service_started
+      oracle-3:
+        condition: service_started
+    environment:
+      PORT: 4000
+      # Hardhat account #0 (deployer: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266)
+      DEPLOYER_PRIVATE_KEY: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+      RPC_URL: http://hardhat:8545
+      HEMS_API_URL: http://hems-api:3000
+      CONTRACT_ADDRESS: ${CONTRACT_ADDRESS:-}
+      LOG_LEVEL: info
+      WAIT_FOR_AGGREGATION_TIMEOUT: 30000
+      POLL_INTERVAL: 1000
+    volumes:
+      - ./deployments:/app/deployments:ro
+      - ./artifacts:/app/artifacts:ro
+    ports:
+      - "4000:4000"
+    networks:
+      - eaon-k6
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:4000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+networks:
+  eaon-k6:
+    driver: bridge
+    name: eaon-k6-network
+
+volumes:
+  hardhat-data:
+    name: eaon-k6-hardhat-data
+  hardhat-cache:
+    name: eaon-k6-hardhat-cache

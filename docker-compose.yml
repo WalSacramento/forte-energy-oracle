@@ -1,0 +1,134 @@
+version: '3.8'
+
+services:
+  # Hardhat Node - Local Ethereum Network
+  hardhat-node:
+    build:
+      context: .
+      dockerfile: docker/hardhat/Dockerfile
+    container_name: eaon-hardhat
+    ports:
+      - "8545:8545"
+    networks:
+      - eaon-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8545"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Mock HEMS API
+  mock-hems:
+    build:
+      context: ./mock-hems
+      dockerfile: Dockerfile
+    container_name: eaon-hems
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=development
+    networks:
+      - eaon-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Oracle Node 1 (Prosumer)
+  oracle-node-1:
+    build:
+      context: ./oracle-nodes
+      dockerfile: Dockerfile
+    container_name: eaon-oracle-1
+    ports:
+      - "4001:4001"
+    volumes:
+      - ./deployments:/app/deployments:ro
+    environment:
+      - NODE_ID=oracle-1
+      - NODE_TYPE=prosumer
+      - PORT=4001
+      - RPC_URL=http://hardhat-node:8545
+      - HEMS_API_URL=http://mock-hems:3000
+      - PRIVATE_KEY=0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d
+      - CONTRACT_ADDRESS=${CONTRACT_ADDRESS:-}
+    depends_on:
+      hardhat-node:
+        condition: service_healthy
+      mock-hems:
+        condition: service_healthy
+    networks:
+      - eaon-network
+
+  # Oracle Node 2 (Consumer)
+  oracle-node-2:
+    build:
+      context: ./oracle-nodes
+      dockerfile: Dockerfile
+    container_name: eaon-oracle-2
+    ports:
+      - "4002:4002"
+    volumes:
+      - ./deployments:/app/deployments:ro
+    environment:
+      - NODE_ID=oracle-2
+      - NODE_TYPE=consumer
+      - PORT=4002
+      - RPC_URL=http://hardhat-node:8545
+      - HEMS_API_URL=http://mock-hems:3000
+      - PRIVATE_KEY=0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a
+      - CONTRACT_ADDRESS=${CONTRACT_ADDRESS:-}
+    depends_on:
+      hardhat-node:
+        condition: service_healthy
+      mock-hems:
+        condition: service_healthy
+    networks:
+      - eaon-network
+
+  # Oracle Node 3 (DSO)
+  oracle-node-3:
+    build:
+      context: ./oracle-nodes
+      dockerfile: Dockerfile
+    container_name: eaon-oracle-3
+    ports:
+      - "4003:4003"
+    volumes:
+      - ./deployments:/app/deployments:ro
+    environment:
+      - NODE_ID=oracle-3
+      - NODE_TYPE=dso
+      - PORT=4003
+      - RPC_URL=http://hardhat-node:8545
+      - HEMS_API_URL=http://mock-hems:3000
+      - PRIVATE_KEY=0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6
+      - CONTRACT_ADDRESS=${CONTRACT_ADDRESS:-}
+    depends_on:
+      hardhat-node:
+        condition: service_healthy
+      mock-hems:
+        condition: service_healthy
+    networks:
+      - eaon-network
+
+  # k6 Load Tester (optional, run manually)
+  k6:
+    image: grafana/k6:latest
+    container_name: eaon-k6
+    volumes:
+      - ./performance/k6:/scripts
+      - ./performance/results:/results
+    networks:
+      - eaon-network
+    profiles:
+      - testing
+    entrypoint: ["k6", "run", "/scripts/baseline.js", "--out", "json=/results/results.json"]
+
+networks:
+  eaon-network:
+    driver: bridge
+
+
