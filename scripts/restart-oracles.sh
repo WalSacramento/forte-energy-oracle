@@ -57,3 +57,4 @@ docker-compose logs --tail=5 oracle-node-3 | grep -E "(Loaded contract address|s
 echo ""
 echo "💡 Para ver logs completos: docker-compose logs -f oracle-node-1"
 
+

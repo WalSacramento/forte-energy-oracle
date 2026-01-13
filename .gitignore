@@ -58,3 +58,36 @@ EAON_Paper_Checklist_Responses.md
 RESULTADOS-TESTES-TERMIMAL.md
 .env.testnet.docker
 
+# === Paper AI-Generated Files (não commitar) ===
+# Análises geradas por IA
+ANALISE_*.md
+FIGURES_AND_TABLES_GUIDE.md
+RESUMO_*.md
+SECAO_*.md
+rascunho*.md
+EAON_Implementation_Guide_Complete.md
+
+# Versões do paper
+Paper_Energy_Aware_Oracle_Network.md
+Paper_Energy_Aware_Oracle_Network.tex
+SECTION_IV_EVALUATION.tex
+
+# Seções LaTeX geradas por IA
+resultados-paper/unit-testing-section.tex
+resultados-paper/**/*.tex
+
+# === Arquivos Temporários ===
+prepare-commits.sh
+test-nonce-*.sh
+
+# === Binários e Artefatos ===
+hardhat
+energy-oracle-network@*
+
+# === IDE Cursor ===
+.cursor/
+
+# === Arquivos Compactados Temporários ===
+*.zip
+!docs/*.zip
+

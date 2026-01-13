@@ -162,6 +162,23 @@ describe("GridValidator", function () {
             expect(lineInfo.currentLoad).to.equal(5000);
         });
 
+        it("Should validate and record trade with specific line ID", async function () {
+            const { gridValidator, prosumer1 } = await loadFixture(deployGridValidatorFixture);
+
+            await gridValidator.addGridLine("LINE002", 100000);
+
+            await expect(
+                gridValidator.validateAndRecordTrade(
+                    prosumer1.address,
+                    5000,
+                    "LINE002"
+                )
+            ).to.emit(gridValidator, "ValidationPassed");
+
+            const lineInfo = await gridValidator.getGridLine("LINE002");
+            expect(lineInfo.currentLoad).to.equal(5000);
+        });
+
         it("Should use specified grid line", async function () {
             const { gridValidator, prosumer1 } = await loadFixture(deployGridValidatorFixture);
 
@@ -190,6 +207,88 @@ describe("GridValidator", function () {
         });
     });
 
+    describe("Grid Line Configuration", function () {
+        it("Should set default grid line", async function () {
+            const { gridValidator, owner } = await loadFixture(deployGridValidatorFixture);
+
+            await gridValidator.addGridLine("LINE002", 500000);
+
+            await gridValidator.setDefaultLine("LINE002");
+            expect(await gridValidator.defaultLineId()).to.equal("LINE002");
+        });
+
+        it("Should revert when setting inactive line as default", async function () {
+            const { gridValidator, owner } = await loadFixture(deployGridValidatorFixture);
+
+            await expect(
+                gridValidator.setDefaultLine("NONEXISTENT")
+            ).to.be.revertedWith("Line not active");
+        });
+
+        it("Should only allow owner to set default line", async function () {
+            const { gridValidator, user } = await loadFixture(deployGridValidatorFixture);
+
+            await expect(
+                gridValidator.connect(user).setDefaultLine("LINE001")
+            ).to.be.reverted;
+        });
+    });
+
+    describe("Trade Validation Edge Cases", function () {
+        it("Should return 0 available capacity when line is inactive", async function () {
+            const { gridValidator } = await loadFixture(deployGridValidatorFixture);
+
+            const available = await gridValidator.getAvailableCapacity("NONEXISTENT");
+            expect(available).to.equal(0);
+        });
+
+        it("Should return 0 available capacity when line is at max capacity", async function () {
+            const { gridValidator } = await loadFixture(deployGridValidatorFixture);
+
+            await gridValidator.updateGridLoad("LINE001", 1000000);
+
+            const available = await gridValidator.getAvailableCapacity("LINE001");
+            expect(available).to.equal(0);
+        });
+
+        it("Should reject trade exceeding max generation capacity", async function () {
+            const { gridValidator, prosumer1 } = await loadFixture(deployGridValidatorFixture);
+
+            await gridValidator.registerProsumer(prosumer1.address, 10000);
+            // Set currentGeneration higher than amount, but amount > maxGeneration
+            // This way we test the maxGeneration check (line 197) before currentGeneration check (line 192)
+            // Actually, currentGeneration is checked first, so we need currentGeneration > amount > maxGeneration
+            await gridValidator.updateProsumerGeneration(prosumer1.address, 15000);
+
+            const [isValid, reason] = await gridValidator.validateTrade(
+                prosumer1.address,
+                12000, // Exceeds maxGeneration (10000) but within currentGeneration (15000)
+                ""
+            );
+
+            expect(isValid).to.be.false;
+            expect(reason).to.equal("Exceeds maximum generation");
+        });
+
+        it("Should fail validation and record trade when validation fails", async function () {
+            const { gridValidator, prosumer1 } = await loadFixture(deployGridValidatorFixture);
+
+            await gridValidator.updateGridLoad("LINE001", 990000);
+
+            await expect(
+                gridValidator.validateAndRecordTrade(
+                    prosumer1.address,
+                    50000, // Would exceed capacity
+                    ""
+                )
+            ).to.emit(gridValidator, "ValidationFailed");
+
+            // Check that load didn't change (validation failed, so load wasn't updated)
+            const lineInfo = await gridValidator.getGridLine("LINE001");
+            expect(lineInfo.currentLoad).to.equal(990000); // Should not change
+        });
+    });
+
     describe("View Functions", function () {
         it("Should return all line IDs", async function () {
             const { gridValidator } = await loadFixture(deployGridValidatorFixture);
@@ -205,5 +304,6 @@ describe("GridValidator", function () {
         });
     });
 });
+
 
 

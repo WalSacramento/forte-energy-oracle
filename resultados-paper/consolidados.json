@@ -1,0 +1,505 @@
+{
+  "metadata": {
+    "timestamp": "2026-01-12T00:00:00Z",
+    "project": "EAON - Energy-Aware Oracle Network",
+    "taxonomy": "Donta et al. 2025 - Performance Measurements in AI-Centric Computing Continuum Systems",
+    "fonte": "RESULTADOS-TESTES-TERMIMAL.md",
+    "blockchain": {
+      "local": "Hardhat Network (localhost)",
+      "testnet": "Sepolia Testnet (Chain ID: 11155111)"
+    },
+    "contractVersion": "Solidity 0.8.20, OpenZeppelin 5.0.0",
+    "oracleConfiguration": {
+      "minResponses": 2,
+      "outlierThreshold": "10%",
+      "requestDeadline": "30 seconds",
+      "reputationSystem": {
+        "initial": 70,
+        "max": 100,
+        "reward": 1,
+        "penalty": -5
+      }
+    }
+  },
+  "local": {
+    "baseline": {
+      "testConfiguration": {
+        "virtualUsers": 10,
+        "iterations": 100,
+        "duration": "127.05s",
+        "scenario": "Normal operation with all 3 oracles functioning"
+      },
+      "applicationLevel": {
+        "errorRate": 0.00,
+        "accuracy": 100.00,
+        "availability": 100.00,
+        "outlierDetectionRate": 0.00
+      },
+      "networkLevel": {
+        "latency": {
+          "ttfb": {
+            "avg": 107,
+            "p95": null
+          }
+        },
+        "throughput": 0.79,
+        "responseTime": {
+          "avg": 10095,
+          "p50": 9858,
+          "p95": 12070,
+          "p99": 12090
+        },
+        "consensusTime": {
+          "avg": 3591,
+          "p95": 4722
+        }
+      },
+      "computingLevel": {
+        "gasConsumption": {
+          "avg": 496000,
+          "p50": 475000,
+          "p95": 625000,
+          "p99": 625000
+        },
+        "scalability": {
+          "maxVUs": 10
+        },
+        "concurrency": {
+          "vus": 10
+        }
+      }
+    },
+    "crashFault": {
+      "testConfiguration": {
+        "virtualUsers": 1,
+        "iterations": 30,
+        "duration": "62.56s",
+        "scenario": "1 oracle offline (Oracle 3), system continues with 2/3"
+      },
+      "applicationLevel": {
+        "errorRate": 0.00,
+        "accuracy": 100.00,
+        "availability": 100.00,
+        "outlierDetectionRate": 0.00
+      },
+      "networkLevel": {
+        "latency": {
+          "ttfb": {
+            "avg": 107,
+            "p95": null
+          }
+        },
+        "throughput": 0.48,
+        "responseTime": {
+          "avg": 3210,
+          "p50": 3185,
+          "p95": 4094,
+          "p99": 4104
+        },
+        "consensusTime": {
+          "avg": 3084,
+          "p95": 3977
+        }
+      },
+      "computingLevel": {
+        "gasConsumption": {
+          "avg": 500000,
+          "p50": 475000,
+          "p95": 625000,
+          "p99": 625000
+        },
+        "scalability": {
+          "maxVUs": 1
+        },
+        "concurrency": {
+          "vus": 1
+        }
+      }
+    },
+    "byzantineFault": {
+      "testConfiguration": {
+        "virtualUsers": 1,
+        "iterations": 30,
+        "duration": "40.48s",
+        "scenario": "1 oracle malicious (Oracle 3), submitting 10x values"
+      },
+      "applicationLevel": {
+        "errorRate": 0.00,
+        "accuracy": 46.67,
+        "availability": 100.00,
+        "outlierDetectionRate": 66.67,
+        "notes": "Accuracy affected when Byzantine value is median; outliers correctly detected 66.67% of time"
+      },
+      "networkLevel": {
+        "latency": {
+          "ttfb": {
+            "avg": 107,
+            "p95": null
+          }
+        },
+        "throughput": 0.74,
+        "responseTime": {
+          "avg": 3156,
+          "p50": 3129,
+          "p95": 4117,
+          "p99": 4125
+        },
+        "consensusTime": {
+          "avg": 3032,
+          "p95": 3985
+        }
+      },
+      "computingLevel": {
+        "gasConsumption": {
+          "avg": 495000,
+          "p50": 475000,
+          "p95": 625000,
+          "p99": 625000
+        },
+        "scalability": {
+          "maxVUs": 1
+        },
+        "concurrency": {
+          "vus": 1
+        }
+      }
+    },
+    "scalability5vus": {
+      "testConfiguration": {
+        "virtualUsers": 5,
+        "iterations": 30,
+        "duration": "40.03s",
+        "scenario": "5 concurrent users"
+      },
+      "applicationLevel": {
+        "errorRate": 0.00,
+        "accuracy": 100.00,
+        "availability": 100.00,
+        "outlierDetectionRate": 0.00
+      },
+      "networkLevel": {
+        "latency": {
+          "ttfb": {
+            "avg": 107,
+            "p95": null
+          }
+        },
+        "throughput": 0.75,
+        "responseTime": {
+          "avg": 4472,
+          "p50": 3906,
+          "p95": 7039,
+          "p99": 7092
+        },
+        "consensusTime": {
+          "avg": 3699,
+          "p95": 4464
+        }
+      },
+      "computingLevel": {
+        "gasConsumption": {
+          "avg": 480000,
+          "p50": 475000,
+          "p95": 475000,
+          "p99": 625000
+        },
+        "scalability": {
+          "maxVUs": 5
+        },
+        "concurrency": {
+          "vus": 5
+        }
+      }
+    },
+    "scalability10vus": {
+      "testConfiguration": {
+        "virtualUsers": 10,
+        "iterations": 30,
+        "duration": "35.37s",
+        "scenario": "10 concurrent users"
+      },
+      "applicationLevel": {
+        "errorRate": 0.00,
+        "accuracy": 100.00,
+        "availability": 100.00,
+        "outlierDetectionRate": 0.00
+      },
+      "networkLevel": {
+        "latency": {
+          "ttfb": {
+            "avg": 107,
+            "p95": null
+          }
+        },
+        "throughput": 0.85,
+        "responseTime": {
+          "avg": 8535,
+          "p50": 7969,
+          "p95": 12940,
+          "p99": 13050
+        },
+        "consensusTime": {
+          "avg": 3819,
+          "p95": 5311
+        }
+      },
+      "computingLevel": {
+        "gasConsumption": {
+          "avg": 495000,
+          "p50": 475000,
+          "p95": 625000,
+          "p99": 625000
+        },
+        "scalability": {
+          "maxVUs": 10
+        },
+        "concurrency": {
+          "vus": 10
+        }
+      }
+    },
+    "scalability20vus": {
+      "testConfiguration": {
+        "virtualUsers": 20,
+        "iterations": 30,
+        "duration": "36.62s",
+        "scenario": "20 concurrent users - maximum tested load"
+      },
+      "applicationLevel": {
+        "errorRate": 0.00,
+        "accuracy": 100.00,
+        "availability": 100.00,
+        "outlierDetectionRate": 0.00
+      },
+      "networkLevel": {
+        "latency": {
+          "ttfb": {
+            "avg": 107,
+            "p95": null
+          }
+        },
+        "throughput": 0.82,
+        "responseTime": {
+          "avg": 16480,
+          "p50": 16420,
+          "p95": 23473,
+          "p99": 23630
+        },
+        "consensusTime": {
+          "avg": 3467,
+          "p95": 4713
+        }
+      },
+      "computingLevel": {
+        "gasConsumption": {
+          "avg": 520000,
+          "p50": 475000,
+          "p95": 625000,
+          "p99": 625000
+        },
+        "scalability": {
+          "maxVUs": 20
+        },
+        "concurrency": {
+          "vus": 20
+        }
+      }
+    },
+    "stress": {
+      "testConfiguration": {
+        "virtualUsers": 10,
+        "iterations": 30,
+        "duration": "39.45s",
+        "scenario": "Stress test with 10 concurrent users"
+      },
+      "applicationLevel": {
+        "errorRate": 0.00,
+        "accuracy": 100.00,
+        "availability": 100.00,
+        "outlierDetectionRate": 0.00
+      },
+      "networkLevel": {
+        "latency": {
+          "ttfb": {
+            "avg": 107,
+            "p95": null
+          }
+        },
+        "throughput": 0.76,
+        "responseTime": {
+          "avg": 9031,
+          "p50": 8472,
+          "p95": 12765,
+          "p99": 12860
+        },
+        "consensusTime": {
+          "avg": 4150,
+          "p95": 5274
+        }
+      },
+      "computingLevel": {
+        "gasConsumption": {
+          "avg": 535000,
+          "p50": 475000,
+          "p95": 625000,
+          "p99": 625000
+        },
+        "scalability": {
+          "maxVUs": 10
+        },
+        "concurrency": {
+          "vus": 10
+        }
+      }
+    }
+  },
+  "testnet": {
+    "sepoliaBaseline": {
+      "testConfiguration": {
+        "virtualUsers": 2,
+        "iterations": 100,
+        "duration": "2876.33s (47m56s)",
+        "scenario": "Baseline test on Sepolia testnet",
+        "network": "Sepolia Testnet",
+        "chainId": 11155111,
+        "blockTime": "~12 seconds"
+      },
+      "applicationLevel": {
+        "errorRate": 3.00,
+        "accuracy": 100.00,
+        "availability": 97.00,
+        "outlierDetectionRate": 0.00,
+        "notes": "3% error rate due to occasional network congestion"
+      },
+      "networkLevel": {
+        "latency": {
+          "ttfb": {
+            "avg": 26106,
+            "p50": 24000,
+            "p95": 55513,
+            "p99": 57620
+          }
+        },
+        "throughput": 0.04,
+        "responseTime": {
+          "avg": 48272,
+          "p50": 44090,
+          "p95": 85759,
+          "p99": 90460
+        },
+        "consensusTime": {
+          "avg": 21143,
+          "p95": 41123
+        }
+      },
+      "computingLevel": {
+        "gasConsumption": {
+          "avg": 553870,
+          "p50": 500000,
+          "p95": 625000,
+          "p99": 625000
+        },
+        "scalability": {
+          "maxVUs": 2
+        },
+        "concurrency": {
+          "vus": 2
+        }
+      }
+    }
+  },
+  "comparison": {
+    "localVsTestnet": {
+      "availability": {
+        "local": 100.00,
+        "testnet": 97.00,
+        "delta": -3.00,
+        "deltaPercent": "-3.00%",
+        "analysis": "Testnet shows 3% unavailability due to network congestion and occasional timeouts"
+      },
+      "responseTime": {
+        "local": 10095,
+        "testnet": 48272,
+        "delta": 38177,
+        "deltaPercent": "+378%",
+        "analysis": "Testnet 4.78x slower due to 12s block time vs 1s in local"
+      },
+      "consensusTime": {
+        "local": 3591,
+        "testnet": 21143,
+        "delta": 17552,
+        "deltaPercent": "+489%",
+        "analysis": "Consensus time significantly higher in testnet due to network latency"
+      },
+      "throughput": {
+        "local": 0.79,
+        "testnet": 0.04,
+        "delta": -0.75,
+        "deltaPercent": "-95%",
+        "analysis": "Throughput drastically reduced in testnet (0.04 req/s vs 0.79 req/s)"
+      },
+      "gasConsumption": {
+        "local": 496000,
+        "testnet": 553870,
+        "delta": 57870,
+        "deltaPercent": "+11.67%",
+        "analysis": "Slightly higher gas consumption in testnet, but consistent within 15% variance"
+      }
+    },
+    "scalability": {
+      "analysis": "Response time increases linearly with VUs: 1 VU (3.2s) → 5 VUs (4.5s) → 10 VUs (8.5s) → 20 VUs (16.5s)",
+      "observedPattern": "Sublinear degradation suggests bottleneck is transaction ordering, not computation",
+      "throughput": {
+        "5vus": 0.75,
+        "10vus": 0.85,
+        "20vus": 0.82,
+        "peak": 0.85,
+        "notes": "Peak throughput at 10 VUs (0.85 req/s)"
+      },
+      "consensusTime": {
+        "5vus": 3699,
+        "10vus": 3819,
+        "20vus": 3467,
+        "stability": "Consensus time remains stable (3.5-3.8s) regardless of load"
+      }
+    }
+  },
+  "keyFindings": {
+    "reliability": {
+      "localAvailability": "100% across all scenarios",
+      "testnetAvailability": "97% (acceptable for production)",
+      "faultTolerance": "System continues with 2/3 oracles (crash fault tolerance validated)"
+    },
+    "byzantineResistance": {
+      "outlierDetection": "66.67% detection rate",
+      "accuracy": "46.67% when Byzantine value is median (limitation of 3-oracle system)",
+      "recommendation": "Consider n > 3 oracles or weighted consensus for production"
+    },
+    "performance": {
+      "localResponseTime": "3-16s depending on concurrency",
+      "testnetResponseTime": "48s average (within 5-minute tolerance for energy trading)",
+      "gasConsumption": "~500-550K per complete oracle cycle",
+      "gasEstimate": "$0.033 per cycle at 20 Gwei and $2000 ETH"
+    },
+    "scalability": {
+      "maxTestedVUs": 20,
+      "recommendedVUs": "10 (optimal throughput/latency balance)",
+      "bottleneck": "Transaction ordering in mempool, not computation",
+      "potentialOptimization": "Parallel submission could reduce consensus time by 66%"
+    }
+  },
+  "recommendations": {
+    "production": [
+      "Deploy with n ≥ 5 oracles for better Byzantine tolerance",
+      "Implement transaction retry mechanisms for testnet 3% error rate",
+      "Use weighted consensus based on reputation for improved accuracy",
+      "Consider Layer 2 scaling solutions for higher throughput"
+    ],
+    "testing": [
+      "Long-term stability testing (1000+ cycles) recommended",
+      "Test on multiple testnets (Polygon Amoy, Base Sepolia)",
+      "Implement automated gas collection via Etherscan API",
+      "Add monitoring for reputation system effectiveness"
+    ]
+  }
+}
