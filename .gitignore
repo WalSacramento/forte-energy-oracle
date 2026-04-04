@@ -87,6 +87,18 @@ energy-oracle-network@*
 # === IDE Cursor ===
 .cursor/
 
+# === Ferramentas de IA ===
+.claude/
+.opencode/
+
+# === Specs / Propostas ===
+openspec/
+
+# === Documentos Acadêmicos / Paper ===
+*.pdf
+DEMO-GUIDE.md
+OMNIORACLE_FRAMEWORK.md
+
 # === Arquivos Compactados Temporários ===
 *.zip
 !docs/*.zip
