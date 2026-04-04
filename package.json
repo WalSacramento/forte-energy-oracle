@@ -4,6 +4,9 @@
   "description": "Energy-Aware Oracle Network (EAON) - Multi-Oracle PoC for P2P Energy Trading in Microgrids",
   "main": "index.js",
   "scripts": {
+    "frontend:dev": "cd frontend && npm run dev",
+    "frontend:build": "cd frontend && npm run build",
+    "gas-report": "REPORT_GAS=true ./node_modules/.bin/hardhat test test/unit/EnergyAuction.test.js",
     "compile": "hardhat compile",
     "test": "hardhat test",
     "test:unit": "hardhat test test/unit/*.test.js",
