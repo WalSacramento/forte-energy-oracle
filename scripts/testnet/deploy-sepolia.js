@@ -97,6 +97,18 @@ async function main() {
   console.log("   ✓ Deployed to:", energyTradingAddress);
   console.log("   View on Etherscan:", `https://sepolia.etherscan.io/address/${energyTradingAddress}`);
 
+  // Deploy EnergyAuction
+  console.log("\n4️⃣  Deploying EnergyAuction...");
+  const EnergyAuction = await hre.ethers.getContractFactory("EnergyAuction");
+  const energyAuction = await EnergyAuction.deploy(
+    oracleAggregatorAddress,
+    gridValidatorAddress
+  );
+  await energyAuction.waitForDeployment();
+  const energyAuctionAddress = await energyAuction.getAddress();
+  console.log("   ✓ Deployed to:", energyAuctionAddress);
+  console.log("   View on Etherscan:", `https://sepolia.etherscan.io/address/${energyAuctionAddress}`);
+
   // Setup: Register Oracles
   console.log("\n" + "─".repeat(70));
   console.log("REGISTERING ORACLES");
@@ -116,6 +128,11 @@ async function main() {
   console.log("\nAuthorizing EnergyTrading contract...");
   await oracleAggregator.authorizeCaller(energyTradingAddress);
   console.log("  ✓ EnergyTrading authorized");
+
+  // Authorize EnergyAuction
+  console.log("Authorizing EnergyAuction contract...");
+  await oracleAggregator.authorizeCaller(energyAuctionAddress);
+  console.log("  ✓ EnergyAuction authorized");
 
   // Verify deployment
   console.log("\n" + "─".repeat(70));
@@ -137,7 +154,8 @@ async function main() {
     contracts: {
       OracleAggregator: oracleAggregatorAddress,
       GridValidator: gridValidatorAddress,
-      EnergyTrading: energyTradingAddress
+      EnergyTrading: energyTradingAddress,
+      EnergyAuction: energyAuctionAddress
     },
     oracles: [
       oracle1.address,
@@ -152,7 +170,8 @@ async function main() {
     explorerLinks: {
       OracleAggregator: `https://sepolia.etherscan.io/address/${oracleAggregatorAddress}`,
       GridValidator: `https://sepolia.etherscan.io/address/${gridValidatorAddress}`,
-      EnergyTrading: `https://sepolia.etherscan.io/address/${energyTradingAddress}`
+      EnergyTrading: `https://sepolia.etherscan.io/address/${energyTradingAddress}`,
+      EnergyAuction: `https://sepolia.etherscan.io/address/${energyAuctionAddress}`
     }
   };
 

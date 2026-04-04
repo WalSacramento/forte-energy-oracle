@@ -82,10 +82,26 @@ async function main() {
     await oracleAggregator.registerOracle(oracle3.address);
     console.log("Registered Oracle 3:", oracle3.address);
 
+    // Deploy EnergyAuction
+    console.log("\nDeploying EnergyAuction...");
+    const EnergyAuction = await hre.ethers.getContractFactory("EnergyAuction");
+    const energyAuction = await EnergyAuction.deploy(
+        oracleAggregatorAddress,
+        gridValidatorAddress
+    );
+    await energyAuction.waitForDeployment();
+    const energyAuctionAddress = await energyAuction.getAddress();
+    console.log("EnergyAuction deployed to:", energyAuctionAddress);
+
     // Authorize EnergyTrading to request data
     console.log("\nAuthorizing EnergyTrading contract...");
     await oracleAggregator.authorizeCaller(energyTradingAddress);
     console.log("EnergyTrading authorized to request oracle data");
+
+    // Authorize EnergyAuction to request data
+    console.log("Authorizing EnergyAuction contract...");
+    await oracleAggregator.authorizeCaller(energyAuctionAddress);
+    console.log("EnergyAuction authorized to request oracle data");
 
     // Verify deployment
     console.log("\n───────────────────────────────────────────");
@@ -105,7 +121,8 @@ async function main() {
         contracts: {
             OracleAggregator: oracleAggregatorAddress,
             GridValidator: gridValidatorAddress,
-            EnergyTrading: energyTradingAddress
+            EnergyTrading: energyTradingAddress,
+            EnergyAuction: energyAuctionAddress
         },
         oracles: {
             oracle1: {
