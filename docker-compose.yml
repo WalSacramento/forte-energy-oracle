@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Hardhat Node - Local Ethereum Network
   hardhat-node:
@@ -126,6 +124,26 @@ services:
     profiles:
       - testing
     entrypoint: ["k6", "run", "/scripts/baseline.js", "--out", "json=/results/results.json"]
+
+  # Frontend — Next.js Energy Grid Terminal
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: eaon-frontend
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - NEXT_PUBLIC_RPC_URL=http://hardhat-node:8545
+    volumes:
+      - ./artifacts:/app/artifacts:ro
+      - ./deployments:/app/deployments:ro
+    depends_on:
+      hardhat-node:
+        condition: service_healthy
+    networks:
+      - eaon-network
 
 networks:
   eaon-network:
