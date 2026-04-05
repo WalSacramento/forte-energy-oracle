@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useReadContract } from "wagmi";
+import { useTranslations } from "next-intl";
 import { EnergyAuctionABI, CONTRACT_ADDRESSES } from "@/lib/contracts";
 import { hardhatLocal } from "@/lib/wagmi-config";
 import { formatEth, formatEthPrice, formatWh } from "@/lib/formatters";
@@ -14,9 +15,9 @@ import { TxToast, type TxState } from "@/components/shared/TxToast";
 import { motion } from "framer-motion";
 import { waitForLocalTransaction } from "@/lib/transactions";
 
-const AUCTION_STATUS_LABELS = ["Active", "Pending Validation", "Finalized", "Cancelled"];
 
 export function AuctionDetail({ auctionId }: { auctionId: bigint }) {
+  const t = useTranslations("auctionDetail");
   const [txState, setTxState] = useState<TxState>("idle");
   const { placeBid, finalizeAuction } = useEnergyAuction();
 
@@ -44,6 +45,8 @@ export function AuctionDetail({ auctionId }: { auctionId: bigint }) {
       status: number;
     } | undefined;
   };
+
+  const AUCTION_STATUS_LABELS = [t("statusActive"), t("statusPendingValidation"), t("statusFinalized"), t("statusCancelled")];
 
   const { currentPrice, isExpired } = useDutchPrice({
     startPrice: auction?.startPrice ?? 0n,
@@ -98,7 +101,7 @@ export function AuctionDetail({ auctionId }: { auctionId: bigint }) {
       {/* Left: Chart */}
       <div className="panel p-4 space-y-2">
         <p className="font-data text-xs uppercase" style={{ color: "var(--text-muted)" }}>
-          Price Decay
+          {t("priceDecay")}
         </p>
         <PriceDecayChart
           startPrice={auction.startPrice}
@@ -109,8 +112,8 @@ export function AuctionDetail({ auctionId }: { auctionId: bigint }) {
           currentPrice={currentPrice}
         />
         <div className="flex justify-between font-data text-xs" style={{ color: "var(--text-muted)" }}>
-          <span>Start: {formatEthPrice(auction.startPrice)}</span>
-          <span style={{ color: "var(--red)" }}>Min: {formatEthPrice(auction.minPrice)}</span>
+          <span>{t("start")} {formatEthPrice(auction.startPrice)}</span>
+          <span style={{ color: "var(--red)" }}>{t("min")} {formatEthPrice(auction.minPrice)}</span>
         </div>
       </div>
 
@@ -118,7 +121,7 @@ export function AuctionDetail({ auctionId }: { auctionId: bigint }) {
       <div className="panel p-6 space-y-6">
         <div>
           <p className="font-data text-xs uppercase" style={{ color: "var(--text-muted)" }}>
-            Current Price / Wh
+            {t("currentPricePerWh")}
           </p>
           <motion.span
             key={currentPrice.toString()}
@@ -133,19 +136,19 @@ export function AuctionDetail({ auctionId }: { auctionId: bigint }) {
 
         <div className="space-y-2 font-data text-sm">
           <div className="flex justify-between">
-            <span style={{ color: "var(--text-muted)" }}>Energy</span>
+            <span style={{ color: "var(--text-muted)" }}>{t("energy")}</span>
             <span style={{ color: "var(--amber)" }}>{formatWh(auction.energyAmount)}</span>
           </div>
           <div className="flex justify-between">
-            <span style={{ color: "var(--text-muted)" }}>Total Cost</span>
+            <span style={{ color: "var(--text-muted)" }}>{t("totalCost")}</span>
             <span style={{ color: "var(--text-primary)" }}>{formatEth(totalCost)}</span>
           </div>
           <div className="flex justify-between">
-            <span style={{ color: "var(--text-muted)" }}>Status</span>
+            <span style={{ color: "var(--text-muted)" }}>{t("status")}</span>
             <span>{AUCTION_STATUS_LABELS[auction.status]}</span>
           </div>
           <div className="flex justify-between">
-            <span style={{ color: "var(--text-muted)" }}>Oracle</span>
+            <span style={{ color: "var(--text-muted)" }}>{t("oracle")}</span>
             <ValidationBadge state={validationState} />
           </div>
         </div>
@@ -162,7 +165,7 @@ export function AuctionDetail({ auctionId }: { auctionId: bigint }) {
                 background: "rgba(0,229,255,0.1)",
               }}
             >
-              Place Bid — {formatEth(totalCost)}
+              {t("placeBid", { cost: formatEth(totalCost) })}
             </button>
           )}
 
@@ -177,13 +180,13 @@ export function AuctionDetail({ auctionId }: { auctionId: bigint }) {
                 background: "rgba(0,230,118,0.1)",
               }}
             >
-              Finalize Auction
+              {t("finalizeAuction")}
             </button>
           )}
 
           {isExpired && isActive && (
             <p className="font-data text-xs text-center" style={{ color: "var(--text-muted)" }}>
-              Auction expired — seller can cancel
+              {t("auctionExpired")}
             </p>
           )}
 
@@ -198,7 +201,7 @@ export function AuctionDetail({ auctionId }: { auctionId: bigint }) {
                   background: "rgba(16,185,129,0.08)",
                 }}
               >
-                View Completed Trades
+                {t("viewCompletedTrades")}
               </Link>
             </div>
           )}

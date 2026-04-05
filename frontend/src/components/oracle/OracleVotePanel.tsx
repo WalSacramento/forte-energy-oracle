@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 
 interface OracleVote {
   oracle: string;
@@ -14,10 +15,11 @@ interface OracleVotePanelProps {
 }
 
 export function OracleVotePanel({ votes, median }: OracleVotePanelProps) {
+  const t = useTranslations("oracleVotePanel");
   if (votes.length === 0) {
     return (
       <div className="p-3 font-data text-xs" style={{ color: "var(--text-muted)" }}>
-        No votes recorded
+        {t("noVotes")}
       </div>
     );
   }
@@ -28,7 +30,7 @@ export function OracleVotePanel({ votes, median }: OracleVotePanelProps) {
   return (
     <div className="p-4 space-y-3">
       <p className="font-data text-xs uppercase" style={{ color: "var(--text-muted)" }}>
-        Oracle Votes
+        {t("oracleVotes")}
       </p>
 
       {votes.map((vote, i) => {
@@ -93,7 +95,7 @@ export function OracleVotePanel({ votes, median }: OracleVotePanelProps) {
               top: -8,
             }}
           >
-            median
+            {t("median")}
           </span>
         </div>
       )}

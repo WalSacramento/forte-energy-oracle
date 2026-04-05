@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { StatusDot } from "@/components/shared/StatusDot";
 import { type OracleNodeMetrics } from "@/hooks/useOracleNodes";
 
@@ -54,6 +55,7 @@ function ReputationGauge({ reputation = 50 }: { reputation: number }) {
 }
 
 export function OracleNodeCard({ nodeIndex, metrics, oracleAddress }: OracleNodeCardProps) {
+  const t = useTranslations("oracleNodeCard");
   const isOnline = metrics?.status === "online";
   const reputation = 70; // placeholder — real value would come from OracleAggregator
 
@@ -61,9 +63,9 @@ export function OracleNodeCard({ nodeIndex, metrics, oracleAddress }: OracleNode
     <div className="panel p-4 space-y-4">
       <div className="flex items-center justify-between">
         <span className="font-display text-xl" style={{ color: "var(--cyan)" }}>
-          NODE {nodeIndex + 1}
+          {t("node", { n: nodeIndex + 1 })}
         </span>
-        <StatusDot variant={isOnline ? "emerald" : "red"} pulse={isOnline} label={isOnline ? "Online" : "Offline"} />
+        <StatusDot variant={isOnline ? "emerald" : "red"} pulse={isOnline} label={isOnline ? t("online") : t("offline")} />
       </div>
 
       <div className="flex justify-center">
@@ -72,26 +74,26 @@ export function OracleNodeCard({ nodeIndex, metrics, oracleAddress }: OracleNode
 
       <div className="space-y-1 font-data text-xs">
         <div className="flex justify-between">
-          <span style={{ color: "var(--text-muted)" }}>Latency</span>
+          <span style={{ color: "var(--text-muted)" }}>{t("latency")}</span>
           <span style={{ color: "var(--text-primary)" }}>
             {metrics ? `${metrics.latencyMs}ms` : "—"}
           </span>
         </div>
         <div className="flex justify-between">
-          <span style={{ color: "var(--text-muted)" }}>Queue</span>
+          <span style={{ color: "var(--text-muted)" }}>{t("queue")}</span>
           <span style={{ color: "var(--text-primary)" }}>
             {metrics ? metrics.queueSize : "—"}
           </span>
         </div>
         <div className="flex justify-between">
-          <span style={{ color: "var(--text-muted)" }}>Total Req.</span>
+          <span style={{ color: "var(--text-muted)" }}>{t("totalRequests")}</span>
           <span style={{ color: "var(--text-primary)" }}>
             {metrics ? metrics.totalRequests : "—"}
           </span>
         </div>
         {oracleAddress && (
           <div className="flex justify-between">
-            <span style={{ color: "var(--text-muted)" }}>Address</span>
+            <span style={{ color: "var(--text-muted)" }}>{t("address")}</span>
             <span style={{ color: "var(--text-secondary)", fontFamily: "var(--font-space)" }}>
               {oracleAddress.slice(0, 6)}…{oracleAddress.slice(-4)}
             </span>

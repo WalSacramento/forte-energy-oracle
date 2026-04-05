@@ -3,11 +3,13 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useAccount } from "wagmi";
+import { useTranslations } from "next-intl";
 import { useCompletedTrades } from "@/hooks/useCompletedTrades";
 import { formatEth, formatTimestamp, formatWh, truncateAddress } from "@/lib/formatters";
 import type { CompletedTradeFilter } from "@/lib/completed-trades";
 
 export function CompletedTradesPage() {
+  const t = useTranslations("completedTrades");
   const { address, isConnected } = useAccount();
   const [filter, setFilter] = useState<CompletedTradeFilter>("all");
   const { data: trades = [], isLoading } = useCompletedTrades();
@@ -37,10 +39,10 @@ export function CompletedTradesPage() {
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="font-display text-3xl" style={{ color: "var(--emerald)" }}>
-            COMPLETED TRADES
+            {t("title")}
           </h1>
           <p className="font-data text-sm" style={{ color: "var(--text-muted)" }}>
-            Review executed purchases and sales from fixed offers and auctions.
+            {t("subtitle")}
           </p>
         </div>
 
@@ -50,7 +52,7 @@ export function CompletedTradesPage() {
             className="font-data text-xs px-3 py-1.5 rounded border transition-colors"
             style={filterStyle(filter === "all")}
           >
-            All Trades
+            {t("allTrades")}
           </button>
           <button
             onClick={() => setFilter("purchases")}
@@ -58,7 +60,7 @@ export function CompletedTradesPage() {
             className="font-data text-xs px-3 py-1.5 rounded border transition-colors disabled:opacity-40"
             style={filterStyle(filter === "purchases")}
           >
-            My Purchases
+            {t("myPurchases")}
           </button>
           <button
             onClick={() => setFilter("sales")}
@@ -66,7 +68,7 @@ export function CompletedTradesPage() {
             className="font-data text-xs px-3 py-1.5 rounded border transition-colors disabled:opacity-40"
             style={filterStyle(filter === "sales")}
           >
-            My Sales
+            {t("mySales")}
           </button>
         </div>
       </div>
@@ -74,7 +76,7 @@ export function CompletedTradesPage() {
       {!isConnected && (
         <div className="panel p-4">
           <p className="font-data text-xs" style={{ color: "var(--text-muted)" }}>
-            Connect your wallet to filter trades by buyer or seller. You can still browse all completed trades.
+            {t("connectWalletHint")}
           </p>
         </div>
       )}
@@ -82,13 +84,13 @@ export function CompletedTradesPage() {
       {isLoading ? (
         <div className="panel p-6">
           <p className="font-data text-sm" style={{ color: "var(--text-muted)" }}>
-            Loading completed trades...
+            {t("loading")}
           </p>
         </div>
       ) : filteredTrades.length === 0 ? (
         <div className="panel p-6 space-y-3">
           <p className="font-data text-sm" style={{ color: "var(--text-muted)" }}>
-            No completed trades found for the current view.
+            {t("noTrades")}
           </p>
           <div className="flex items-center gap-3 flex-wrap">
             <Link
@@ -100,7 +102,7 @@ export function CompletedTradesPage() {
                 background: "rgba(245,158,11,0.08)",
               }}
             >
-              Go to Marketplace
+              {t("goToMarketplace")}
             </Link>
             <Link
               href="/auctions"
@@ -111,7 +113,7 @@ export function CompletedTradesPage() {
                 background: "rgba(0,229,255,0.08)",
               }}
             >
-              Go to Auctions
+              {t("goToAuctions")}
             </Link>
           </div>
         </div>
@@ -120,15 +122,15 @@ export function CompletedTradesPage() {
           <table className="w-full font-data text-xs">
             <thead>
               <tr style={{ borderBottom: "1px solid var(--bg-border)", color: "var(--text-muted)" }}>
-                <th className="text-left p-3">Type</th>
-                <th className="text-left p-3">Ref</th>
-                <th className="text-left p-3">Meter</th>
-                <th className="text-right p-3">Energy</th>
-                <th className="text-right p-3">Total</th>
-                <th className="text-left p-3">Buyer</th>
-                <th className="text-left p-3">Seller</th>
-                <th className="text-left p-3">Time</th>
-                <th className="text-left p-3">Tx</th>
+                <th className="text-left p-3">{t("colType")}</th>
+                <th className="text-left p-3">{t("colRef")}</th>
+                <th className="text-left p-3">{t("colMeter")}</th>
+                <th className="text-right p-3">{t("colEnergy")}</th>
+                <th className="text-right p-3">{t("colTotal")}</th>
+                <th className="text-left p-3">{t("colBuyer")}</th>
+                <th className="text-left p-3">{t("colSeller")}</th>
+                <th className="text-left p-3">{t("colTime")}</th>
+                <th className="text-left p-3">{t("colTx")}</th>
               </tr>
             </thead>
             <tbody>
@@ -136,7 +138,7 @@ export function CompletedTradesPage() {
                 <tr key={trade.id} style={{ borderBottom: "1px solid var(--bg-border)" }}>
                   <td className="p-3">
                     <span style={{ color: trade.source === "auction" ? "var(--cyan)" : "var(--amber)" }}>
-                      {trade.source === "auction" ? "AUCTION" : "OFFER"}
+                      {trade.source === "auction" ? t("typeAuction") : t("typeOffer")}
                     </span>
                   </td>
                   <td className="p-3">#{trade.referenceId}</td>

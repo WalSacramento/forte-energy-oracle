@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useReadContract, useWatchContractEvent } from "wagmi";
+import { useTranslations } from "next-intl";
 import { OracleAggregatorABI, CONTRACT_ADDRESSES } from "@/lib/contracts";
 import { hardhatLocal } from "@/lib/wagmi-config";
 import { OracleVotePanel } from "./OracleVotePanel";
@@ -14,7 +15,6 @@ interface RequestRow {
   responseCount: number;
 }
 
-const STATUS_LABELS = ["Pending", "Aggregating", "Completed", "Failed"];
 const STATUS_COLORS = ["var(--amber)", "var(--cyan)", "var(--emerald)", "var(--red)"];
 
 function RequestDetailRow({ requestId }: { requestId: bigint }) {
@@ -47,6 +47,8 @@ function RequestDetailRow({ requestId }: { requestId: bigint }) {
 }
 
 export function RequestTable() {
+  const t = useTranslations("requestTable");
+  const STATUS_LABELS = [t("statusPending"), t("statusAggregating"), t("statusCompleted"), t("statusFailed")];
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [requests, setRequests] = useState<RequestRow[]>([]);
 
@@ -102,7 +104,7 @@ export function RequestTable() {
     return (
       <div className="panel p-6">
         <p className="font-data text-xs text-center" style={{ color: "var(--text-muted)" }}>
-          No oracle requests yet. Events will appear here live.
+          {t("noRequests")}
         </p>
       </div>
     );
@@ -113,11 +115,11 @@ export function RequestTable() {
       <table className="w-full font-data text-xs">
         <thead>
           <tr style={{ borderBottom: "1px solid var(--bg-border)", color: "var(--text-muted)" }}>
-            <th className="text-left p-3">Request ID</th>
-            <th className="text-left p-3">Meter</th>
-            <th className="text-center p-3">Status</th>
-            <th className="text-right p-3">Aggregated</th>
-            <th className="text-center p-3">Responses</th>
+            <th className="text-left p-3">{t("colRequestId")}</th>
+            <th className="text-left p-3">{t("colMeter")}</th>
+            <th className="text-center p-3">{t("colStatus")}</th>
+            <th className="text-right p-3">{t("colAggregated")}</th>
+            <th className="text-center p-3">{t("colResponses")}</th>
             <th className="text-right p-3"></th>
           </tr>
         </thead>

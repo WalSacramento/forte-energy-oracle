@@ -1,6 +1,7 @@
 "use client";
 
 import { useReadContract } from "wagmi";
+import { useTranslations } from "next-intl";
 import { EnergyTradingABI, CONTRACT_ADDRESSES } from "@/lib/contracts";
 import { hardhatLocal } from "@/lib/wagmi-config";
 import { formatWh, formatEthPrice, formatCountdown } from "@/lib/formatters";
@@ -20,6 +21,7 @@ const ORACLE_STATUS_MAP: Record<number, "PENDING" | "AGGREGATING" | "COMPLETED" 
 };
 
 export function OfferCard({ offerId, onBuy }: OfferCardProps) {
+  const t = useTranslations("offerCard");
   const { data: offer } = useReadContract({
     address: CONTRACT_ADDRESSES.energyTrading,
     abi: EnergyTradingABI,
@@ -74,7 +76,7 @@ export function OfferCard({ offerId, onBuy }: OfferCardProps) {
           {formatEthPrice(o.pricePerWh)}
         </span>
         <span className="font-data text-xs" style={{ color: "var(--text-muted)" }}>
-          per Wh
+          {t("perWh")}
         </span>
       </div>
 
@@ -83,7 +85,7 @@ export function OfferCard({ offerId, onBuy }: OfferCardProps) {
         <div className="flex flex-col gap-0.5">
           <AddressBadge address={o.seller} />
           <span className="font-data text-xs" style={{ color: expiresIn < 300 ? "var(--red)" : "var(--text-muted)" }}>
-            Expires {formatCountdown(expiresIn)}
+            {t("expires")} {formatCountdown(expiresIn)}
           </span>
         </div>
 
@@ -96,7 +98,7 @@ export function OfferCard({ offerId, onBuy }: OfferCardProps) {
             background: "rgba(255,165,0,0.1)",
           }}
         >
-          Buy
+          {t("buy")}
         </button>
       </div>
     </div>

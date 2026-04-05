@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { OracleNodeCard } from "@/components/oracle/OracleNodeCard";
 import { RequestTable } from "@/components/oracle/RequestTable";
 import { useOracleNodes } from "@/hooks/useOracleNodes";
@@ -12,13 +13,14 @@ const ORACLE_NODE_URLS = [
 ] as const;
 
 export function OracleHealthPage() {
+  const t = useTranslations("oracleHealth");
   const nodes = useOracleNodes();
   const { oracles } = useOracleAggregator();
 
   return (
     <div className="space-y-6">
       <h1 className="font-display text-3xl" style={{ color: "var(--cyan)" }}>
-        ORACLE HEALTH
+        {t("title")}
       </h1>
 
       {/* 3 Oracle node cards */}

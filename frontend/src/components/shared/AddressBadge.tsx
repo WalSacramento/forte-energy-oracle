@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { truncateAddress } from "@/lib/formatters";
 
 interface AddressBadgeProps {
@@ -9,6 +10,7 @@ interface AddressBadgeProps {
 }
 
 export function AddressBadge({ address, chars = 4 }: AddressBadgeProps) {
+  const t = useTranslations("addressBadge");
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -29,7 +31,7 @@ export function AddressBadge({ address, chars = 4 }: AddressBadgeProps) {
       {truncateAddress(address, chars)}
       <button
         onClick={handleCopy}
-        title={copied ? "Copied!" : "Copy address"}
+        title={copied ? t("copied") : t("copyAddress")}
         className="opacity-60 hover:opacity-100 transition-opacity"
         style={{ color: copied ? "var(--emerald)" : "inherit" }}
       >

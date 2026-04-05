@@ -1,9 +1,12 @@
 "use client";
 
 import { useAccount, useConnect, useDisconnect, useBlockNumber } from "wagmi";
+import { useTranslations } from "next-intl";
 import { truncateAddress } from "@/lib/formatters";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 export function TopBar() {
+  const t = useTranslations("topbar");
   const { address, isConnected } = useAccount();
   const { connect, connectors, isPending } = useConnect();
   const { disconnect } = useDisconnect();
@@ -27,7 +30,7 @@ export function TopBar() {
         className="font-display text-lg tracking-widest"
         style={{ color: "var(--cyan)" }}
       >
-        ENERGY GRID TERMINAL
+        {t("title")}
       </span>
 
       <div className="flex items-center gap-4">
@@ -44,6 +47,9 @@ export function TopBar() {
             #{blockNumber.toString()}
           </span>
         )}
+
+        {/* Language switcher */}
+        <LanguageSwitcher />
 
         {/* Wallet */}
         {isConnected ? (
@@ -62,7 +68,7 @@ export function TopBar() {
                 borderColor: "var(--bg-border)",
               }}
             >
-              Disconnect
+              {t("disconnect")}
             </button>
           </div>
         ) : (
@@ -76,7 +82,7 @@ export function TopBar() {
               background: "rgba(0,229,255,0.08)",
             }}
           >
-            {isPending ? "Connecting..." : "Connect Wallet"}
+            {isPending ? t("connecting") : t("connectWallet")}
           </button>
         )}
       </div>

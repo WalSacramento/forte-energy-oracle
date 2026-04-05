@@ -1,11 +1,9 @@
 "use client";
 
 import { useAccount, useReadContract } from "wagmi";
+import { useTranslations } from "next-intl";
 import { EnergyTradingABI, EnergyAuctionABI, CONTRACT_ADDRESSES } from "@/lib/contracts";
 import { hardhatLocal } from "@/lib/wagmi-config";
-
-const OFFER_STEPS = ["Created", "Oracle Pending", "Active", "Filled / Cancelled"];
-const AUCTION_STEPS = ["Created", "Active", "Bid Received", "Finalized"];
 
 function ProgressBar({ steps, currentStep }: { steps: string[]; currentStep: number }) {
   return (
@@ -40,6 +38,9 @@ function ProgressBar({ steps, currentStep }: { steps: string[]; currentStep: num
 }
 
 export function PositionTimeline() {
+  const t = useTranslations("positionTimeline");
+  const OFFER_STEPS = [t("offerStep0"), t("offerStep1"), t("offerStep2"), t("offerStep3")];
+  const AUCTION_STEPS = [t("auctionStep0"), t("auctionStep1"), t("auctionStep2"), t("auctionStep3")];
   const { address } = useAccount();
 
   const { data: sellerOfferIds } = useReadContract({
@@ -63,11 +64,11 @@ export function PositionTimeline() {
   const hasItems = (sellerOfferIds?.length ?? 0) + (sellerAuctionIds?.length ?? 0) > 0;
 
   if (!address) {
-    return <p className="font-data text-xs" style={{ color: "var(--text-muted)" }}>Connect wallet to see positions.</p>;
+    return <p className="font-data text-xs" style={{ color: "var(--text-muted)" }}>{t("connectWallet")}</p>;
   }
 
   if (!hasItems) {
-    return <p className="font-data text-xs" style={{ color: "var(--text-muted)" }}>No positions yet.</p>;
+    return <p className="font-data text-xs" style={{ color: "var(--text-muted)" }}>{t("noPositions")}</p>;
   }
 
   return (
@@ -76,7 +77,7 @@ export function PositionTimeline() {
         <div key={id.toString()} className="panel p-3">
           <div className="flex items-center justify-between mb-2">
             <span className="font-data text-xs" style={{ color: "var(--amber)" }}>
-              OFFER #{id.toString()}
+              {t("offer", { id: id.toString() })}
             </span>
           </div>
           <ProgressBar steps={OFFER_STEPS} currentStep={1} />
@@ -87,7 +88,7 @@ export function PositionTimeline() {
         <div key={id.toString()} className="panel p-3">
           <div className="flex items-center justify-between mb-2">
             <span className="font-data text-xs" style={{ color: "var(--cyan)" }}>
-              AUCTION #{id.toString()}
+              {t("auction", { id: id.toString() })}
             </span>
           </div>
           <ProgressBar steps={AUCTION_STEPS} currentStep={1} />

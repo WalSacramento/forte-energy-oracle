@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Bebas_Neue, JetBrains_Mono, Space_Mono } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
 import "./globals.css";
 import { Providers } from "./providers";
 
@@ -28,18 +30,24 @@ export const metadata: Metadata = {
   description: "Energy-Aware Oracle Network P2P Trading Platform",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
     <html
-      lang="en"
+      lang={locale}
       className={`${bebasNeue.variable} ${jetbrainsMono.variable} ${spaceMono.variable} dark`}
+      suppressHydrationWarning
     >
       <body>
-        <Providers>{children}</Providers>
+        <NextIntlClientProvider messages={messages}>
+          <Providers>{children}</Providers>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

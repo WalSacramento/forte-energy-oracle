@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { formatEth } from "@/lib/formatters";
 
 type ValidationState = "PENDING" | "AGGREGATING" | "COMPLETED" | "FAILED";
@@ -10,16 +11,18 @@ interface ValidationBadgeProps {
   aggregatedValue?: bigint;
 }
 
-const CONFIG: Record<ValidationState, { label: string; color: string; bg: string; pulse: boolean }> = {
-  PENDING:     { label: "PENDING",     color: "var(--amber)",   bg: "rgba(255,165,0,0.1)",   pulse: true },
-  AGGREGATING: { label: "AGGREGATING", color: "var(--cyan)",    bg: "rgba(0,229,255,0.1)",   pulse: true },
-  COMPLETED:   { label: "VALIDATED",   color: "var(--emerald)", bg: "rgba(0,230,118,0.1)",   pulse: false },
-  FAILED:      { label: "FAILED",      color: "var(--red)",     bg: "rgba(255,23,68,0.1)",   pulse: false },
+const STATE_STYLE: Record<ValidationState, { color: string; bg: string; pulse: boolean }> = {
+  PENDING:     { color: "var(--amber)",   bg: "rgba(255,165,0,0.1)",   pulse: true },
+  AGGREGATING: { color: "var(--cyan)",    bg: "rgba(0,229,255,0.1)",   pulse: true },
+  COMPLETED:   { color: "var(--emerald)", bg: "rgba(0,230,118,0.1)",   pulse: false },
+  FAILED:      { color: "var(--red)",     bg: "rgba(255,23,68,0.1)",   pulse: false },
 };
 
 export function ValidationBadge({ state, aggregatedValue }: ValidationBadgeProps) {
+  const t = useTranslations("validationBadge");
   const [showTooltip, setShowTooltip] = useState(false);
-  const cfg = CONFIG[state];
+  const cfg = STATE_STYLE[state];
+  const label = t(state.toLowerCase() as "pending" | "aggregating" | "completed" | "failed");
 
   return (
     <span
@@ -32,7 +35,7 @@ export function ValidationBadge({ state, aggregatedValue }: ValidationBadgeProps
         className={`w-1.5 h-1.5 rounded-full ${cfg.pulse ? "dot-pulse" : ""}`}
         style={{ background: cfg.color }}
       />
-      {cfg.label}
+      {label}
 
       {/* Tooltip for COMPLETED showing aggregated value */}
       {showTooltip && aggregatedValue !== undefined && (
@@ -44,7 +47,7 @@ export function ValidationBadge({ state, aggregatedValue }: ValidationBadgeProps
             color: "var(--text-primary)",
           }}
         >
-          Oracle reading: {formatEth(aggregatedValue)}
+          {t("oracleReading")} {formatEth(aggregatedValue)}
         </span>
       )}
     </span>

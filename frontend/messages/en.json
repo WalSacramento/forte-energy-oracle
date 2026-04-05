@@ -1,0 +1,222 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "market": "Market",
+    "auctions": "Auctions",
+    "prosumer": "Prosumer",
+    "trades": "Trades",
+    "oracle": "Oracle",
+    "history": "History"
+  },
+  "topbar": {
+    "title": "ENERGY GRID TERMINAL",
+    "disconnect": "Disconnect",
+    "connectWallet": "Connect Wallet",
+    "connecting": "Connecting..."
+  },
+  "dashboard": {
+    "title": "SYSTEM OVERVIEW",
+    "activeOffers": "Active Offers",
+    "offers": "offers",
+    "activeAuctions": "Active Auctions",
+    "auctionsUnit": "auctions",
+    "oracleNodes": "Oracle Nodes",
+    "nodes": "nodes",
+    "network": "Network",
+    "local": "local"
+  },
+  "oracleHealthMini": {
+    "oracleNodes": "Oracle Nodes",
+    "details": "Details →",
+    "oracle": "Oracle {n}",
+    "offline": "offline"
+  },
+  "activityFeed": {
+    "liveActivity": "Live Activity",
+    "waiting": "Waiting for events…",
+    "offerCreated": "Offer #{id} created — {amount} Wh",
+    "tradeExecuted": "Trade #{id} — {amount} Wh",
+    "auctionCreated": "Auction #{id} created — {amount} Wh",
+    "bidAccepted": "Bid on Auction #{id}"
+  },
+  "marketplace": {
+    "title": "ENERGY MARKETPLACE",
+    "viewCompletedTrades": "View Completed Trades",
+    "noActiveOffers": "No active offers. Sellers can create offers in the Prosumer panel.",
+    "checkRecentTrades": "Check recently completed trades"
+  },
+  "offerCard": {
+    "perWh": "per Wh",
+    "expires": "Expires",
+    "buy": "Buy"
+  },
+  "buyModal": {
+    "title": "BUY ENERGY",
+    "amount": "Amount",
+    "totalCost": "Total Cost",
+    "estGas": "Est. Gas",
+    "cancel": "Cancel",
+    "processing": "Processing…",
+    "confirm": "Confirm",
+    "successMessage": "Trade confirmed. You can review it in the completed trades view.",
+    "viewCompletedTrades": "View Completed Trades"
+  },
+  "auctions": {
+    "title": "DUTCH AUCTIONS",
+    "noActiveAuctions": "No active auctions. Create one in the Prosumer panel.",
+    "featured": "FEATURED",
+    "allAuctions": "ALL AUCTIONS"
+  },
+  "auctionCard": {
+    "currentPricePerWh": "CURRENT PRICE / Wh",
+    "total": "Total:"
+  },
+  "auctionDetail": {
+    "title": "AUCTION #{id}",
+    "priceDecay": "Price Decay",
+    "start": "Start:",
+    "min": "Min:",
+    "currentPricePerWh": "Current Price / Wh",
+    "energy": "Energy",
+    "totalCost": "Total Cost",
+    "status": "Status",
+    "oracle": "Oracle",
+    "placeBid": "Place Bid — {cost}",
+    "finalizeAuction": "Finalize Auction",
+    "auctionExpired": "Auction expired — seller can cancel",
+    "viewCompletedTrades": "View Completed Trades",
+    "statusActive": "Active",
+    "statusPendingValidation": "Pending Validation",
+    "statusFinalized": "Finalized",
+    "statusCancelled": "Cancelled"
+  },
+  "priceDecayChart": {
+    "minutes": "min",
+    "pricePerWh": "Price/Wh"
+  },
+  "prosumer": {
+    "title": "PROSUMER PANEL",
+    "connectWallet": "Connect your wallet to access the Prosumer Panel.",
+    "myPositions": "My Positions",
+    "create": "Create",
+    "fixedOffer": "Fixed Offer",
+    "dutchAuction": "Dutch Auction"
+  },
+  "positionTimeline": {
+    "connectWallet": "Connect wallet to see positions.",
+    "noPositions": "No positions yet.",
+    "offer": "OFFER #{id}",
+    "auction": "AUCTION #{id}",
+    "offerStep0": "Created",
+    "offerStep1": "Oracle Pending",
+    "offerStep2": "Active",
+    "offerStep3": "Filled / Cancelled",
+    "auctionStep0": "Created",
+    "auctionStep1": "Active",
+    "auctionStep2": "Bid Received",
+    "auctionStep3": "Finalized"
+  },
+  "createOfferForm": {
+    "meterId": "Meter ID",
+    "energyAmount": "Energy Amount (Wh)",
+    "pricePerWh": "Price per Wh (ETH)",
+    "processing": "Processing...",
+    "createOffer": "Create Offer"
+  },
+  "createAuctionForm": {
+    "meterId": "Meter ID",
+    "energyAmount": "Energy Amount (Wh)",
+    "startPrice": "Start Price (ETH/Wh)",
+    "minPrice": "Min Price (ETH/Wh)",
+    "duration": "Duration (minutes)",
+    "processing": "Processing...",
+    "createAuction": "Create Auction",
+    "priceDecayPreview": "Price Decay Preview",
+    "minutes": "min"
+  },
+  "oracleHealth": {
+    "title": "ORACLE HEALTH"
+  },
+  "oracleNodeCard": {
+    "node": "NODE {n}",
+    "online": "Online",
+    "offline": "Offline",
+    "latency": "Latency",
+    "queue": "Queue",
+    "totalRequests": "Total Req.",
+    "address": "Address"
+  },
+  "oracleVotePanel": {
+    "noVotes": "No votes recorded",
+    "oracleVotes": "Oracle Votes",
+    "median": "median"
+  },
+  "requestTable": {
+    "statusPending": "Pending",
+    "statusAggregating": "Aggregating",
+    "statusCompleted": "Completed",
+    "statusFailed": "Failed",
+    "noRequests": "No oracle requests yet. Events will appear here live.",
+    "colRequestId": "Request ID",
+    "colMeter": "Meter",
+    "colStatus": "Status",
+    "colAggregated": "Aggregated",
+    "colResponses": "Responses"
+  },
+  "history": {
+    "title": "TRADE HISTORY",
+    "completedTrades": "Completed Trades",
+    "exportCsv": "Export CSV",
+    "volume": "VOLUME (Wh)",
+    "gasUsed": "GAS USED",
+    "avgSize": "AVG SIZE (Wh)",
+    "colType": "Type",
+    "colTime": "Time",
+    "colAmount": "Amount",
+    "colPrice": "Price",
+    "colGas": "Gas",
+    "noHistory": "No history yet. Trade events will appear here.",
+    "prev": "← Prev",
+    "next": "Next →"
+  },
+  "completedTrades": {
+    "title": "COMPLETED TRADES",
+    "subtitle": "Review executed purchases and sales from fixed offers and auctions.",
+    "allTrades": "All Trades",
+    "myPurchases": "My Purchases",
+    "mySales": "My Sales",
+    "connectWalletHint": "Connect your wallet to filter trades by buyer or seller. You can still browse all completed trades.",
+    "loading": "Loading completed trades...",
+    "noTrades": "No completed trades found for the current view.",
+    "goToMarketplace": "Go to Marketplace",
+    "goToAuctions": "Go to Auctions",
+    "colType": "Type",
+    "colRef": "Ref",
+    "colMeter": "Meter",
+    "colEnergy": "Energy",
+    "colTotal": "Total",
+    "colBuyer": "Buyer",
+    "colSeller": "Seller",
+    "colTime": "Time",
+    "colTx": "Tx",
+    "typeAuction": "AUCTION",
+    "typeOffer": "OFFER"
+  },
+  "txToast": {
+    "pending": "Sending transaction…",
+    "confirming": "Waiting for confirmation…",
+    "success": "Transaction confirmed!",
+    "error": "Transaction failed"
+  },
+  "validationBadge": {
+    "pending": "PENDING",
+    "aggregating": "AGGREGATING",
+    "completed": "VALIDATED",
+    "failed": "FAILED",
+    "oracleReading": "Oracle reading:"
+  },
+  "addressBadge": {
+    "copied": "Copied!",
+    "copyAddress": "Copy address"
+  }
+}

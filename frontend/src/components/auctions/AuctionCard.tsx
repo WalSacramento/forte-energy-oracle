@@ -1,6 +1,7 @@
 "use client";
 
 import { useReadContract } from "wagmi";
+import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { EnergyAuctionABI, CONTRACT_ADDRESSES } from "@/lib/contracts";
 import { hardhatLocal } from "@/lib/wagmi-config";
@@ -13,6 +14,7 @@ interface AuctionCardProps {
 }
 
 export function AuctionCard({ auctionId, hero = false }: AuctionCardProps) {
+  const t = useTranslations("auctionCard");
   const { data: auction } = useReadContract({
     address: CONTRACT_ADDRESSES.energyAuction,
     abi: EnergyAuctionABI,
@@ -73,7 +75,7 @@ export function AuctionCard({ auctionId, hero = false }: AuctionCardProps) {
       {/* Current Price — big Bebas Neue number with Framer Motion pulse */}
       <div>
         <span className="font-data text-xs block mb-1" style={{ color: "var(--text-muted)" }}>
-          CURRENT PRICE / Wh
+          {t("currentPricePerWh")}
         </span>
         <motion.span
           key={currentPrice.toString()}
@@ -117,7 +119,7 @@ export function AuctionCard({ auctionId, hero = false }: AuctionCardProps) {
       {/* Total cost */}
       <div className="flex items-center justify-between">
         <span className="font-data text-xs" style={{ color: "var(--text-muted)" }}>
-          Total: <span style={{ color: "var(--text-primary)" }}>{formatEth(totalCost)}</span>
+          {t("total")} <span style={{ color: "var(--text-primary)" }}>{formatEth(totalCost)}</span>
         </span>
       </div>
     </div>

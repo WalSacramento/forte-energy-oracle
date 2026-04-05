@@ -1,0 +1,222 @@
+{
+  "nav": {
+    "dashboard": "Painel",
+    "market": "Mercado",
+    "auctions": "Leilões",
+    "prosumer": "Prosumidor",
+    "trades": "Negociações",
+    "oracle": "Oráculo",
+    "history": "Histórico"
+  },
+  "topbar": {
+    "title": "TERMINAL DA REDE DE ENERGIA",
+    "disconnect": "Desconectar",
+    "connectWallet": "Conectar Carteira",
+    "connecting": "Conectando..."
+  },
+  "dashboard": {
+    "title": "VISÃO GERAL DO SISTEMA",
+    "activeOffers": "Ofertas Ativas",
+    "offers": "ofertas",
+    "activeAuctions": "Leilões Ativos",
+    "auctionsUnit": "leilões",
+    "oracleNodes": "Nós Oráculos",
+    "nodes": "nós",
+    "network": "Rede",
+    "local": "local"
+  },
+  "oracleHealthMini": {
+    "oracleNodes": "Nós Oráculos",
+    "details": "Detalhes →",
+    "oracle": "Oráculo {n}",
+    "offline": "offline"
+  },
+  "activityFeed": {
+    "liveActivity": "Atividade ao Vivo",
+    "waiting": "Aguardando eventos…",
+    "offerCreated": "Oferta #{id} criada — {amount} Wh",
+    "tradeExecuted": "Negociação #{id} — {amount} Wh",
+    "auctionCreated": "Leilão #{id} criado — {amount} Wh",
+    "bidAccepted": "Lance no Leilão #{id}"
+  },
+  "marketplace": {
+    "title": "MERCADO DE ENERGIA",
+    "viewCompletedTrades": "Ver Negociações Concluídas",
+    "noActiveOffers": "Sem ofertas ativas. Vendedores podem criar ofertas no painel Prosumidor.",
+    "checkRecentTrades": "Ver negociações recentes concluídas"
+  },
+  "offerCard": {
+    "perWh": "por Wh",
+    "expires": "Expira",
+    "buy": "Comprar"
+  },
+  "buyModal": {
+    "title": "COMPRAR ENERGIA",
+    "amount": "Quantidade",
+    "totalCost": "Custo Total",
+    "estGas": "Gas Est.",
+    "cancel": "Cancelar",
+    "processing": "Processando…",
+    "confirm": "Confirmar",
+    "successMessage": "Negociação confirmada. Você pode revisá-la nas negociações concluídas.",
+    "viewCompletedTrades": "Ver Negociações Concluídas"
+  },
+  "auctions": {
+    "title": "LEILÕES HOLANDESES",
+    "noActiveAuctions": "Sem leilões ativos. Crie um no painel Prosumidor.",
+    "featured": "DESTAQUE",
+    "allAuctions": "TODOS OS LEILÕES"
+  },
+  "auctionCard": {
+    "currentPricePerWh": "PREÇO ATUAL / Wh",
+    "total": "Total:"
+  },
+  "auctionDetail": {
+    "title": "LEILÃO #{id}",
+    "priceDecay": "Decaimento de Preço",
+    "start": "Início:",
+    "min": "Mín:",
+    "currentPricePerWh": "Preço Atual / Wh",
+    "energy": "Energia",
+    "totalCost": "Custo Total",
+    "status": "Status",
+    "oracle": "Oráculo",
+    "placeBid": "Dar Lance — {cost}",
+    "finalizeAuction": "Finalizar Leilão",
+    "auctionExpired": "Leilão expirado — vendedor pode cancelar",
+    "viewCompletedTrades": "Ver Negociações Concluídas",
+    "statusActive": "Ativo",
+    "statusPendingValidation": "Aguardando Validação",
+    "statusFinalized": "Finalizado",
+    "statusCancelled": "Cancelado"
+  },
+  "priceDecayChart": {
+    "minutes": "min",
+    "pricePerWh": "Preço/Wh"
+  },
+  "prosumer": {
+    "title": "PAINEL PROSUMIDOR",
+    "connectWallet": "Conecte sua carteira para acessar o Painel Prosumidor.",
+    "myPositions": "Minhas Posições",
+    "create": "Criar",
+    "fixedOffer": "Oferta Fixa",
+    "dutchAuction": "Leilão Holandês"
+  },
+  "positionTimeline": {
+    "connectWallet": "Conecte a carteira para ver posições.",
+    "noPositions": "Nenhuma posição ainda.",
+    "offer": "OFERTA #{id}",
+    "auction": "LEILÃO #{id}",
+    "offerStep0": "Criada",
+    "offerStep1": "Oráculo Pendente",
+    "offerStep2": "Ativa",
+    "offerStep3": "Concluída / Cancelada",
+    "auctionStep0": "Criado",
+    "auctionStep1": "Ativo",
+    "auctionStep2": "Lance Recebido",
+    "auctionStep3": "Finalizado"
+  },
+  "createOfferForm": {
+    "meterId": "ID do Medidor",
+    "energyAmount": "Quantidade de Energia (Wh)",
+    "pricePerWh": "Preço por Wh (ETH)",
+    "processing": "Processando...",
+    "createOffer": "Criar Oferta"
+  },
+  "createAuctionForm": {
+    "meterId": "ID do Medidor",
+    "energyAmount": "Quantidade de Energia (Wh)",
+    "startPrice": "Preço Inicial (ETH/Wh)",
+    "minPrice": "Preço Mínimo (ETH/Wh)",
+    "duration": "Duração (minutos)",
+    "processing": "Processando...",
+    "createAuction": "Criar Leilão",
+    "priceDecayPreview": "Prévia do Decaimento de Preço",
+    "minutes": "min"
+  },
+  "oracleHealth": {
+    "title": "SAÚDE DO ORÁCULO"
+  },
+  "oracleNodeCard": {
+    "node": "NÓ {n}",
+    "online": "Online",
+    "offline": "Offline",
+    "latency": "Latência",
+    "queue": "Fila",
+    "totalRequests": "Total Req.",
+    "address": "Endereço"
+  },
+  "oracleVotePanel": {
+    "noVotes": "Nenhum voto registrado",
+    "oracleVotes": "Votos do Oráculo",
+    "median": "mediana"
+  },
+  "requestTable": {
+    "statusPending": "Pendente",
+    "statusAggregating": "Agregando",
+    "statusCompleted": "Concluído",
+    "statusFailed": "Falhou",
+    "noRequests": "Nenhuma requisição de oráculo ainda. Eventos aparecerão aqui ao vivo.",
+    "colRequestId": "ID da Req.",
+    "colMeter": "Medidor",
+    "colStatus": "Status",
+    "colAggregated": "Agregado",
+    "colResponses": "Respostas"
+  },
+  "history": {
+    "title": "HISTÓRICO DE NEGOCIAÇÕES",
+    "completedTrades": "Negociações Concluídas",
+    "exportCsv": "Exportar CSV",
+    "volume": "VOLUME (Wh)",
+    "gasUsed": "GAS USADO",
+    "avgSize": "TAMANHO MÉDIO (Wh)",
+    "colType": "Tipo",
+    "colTime": "Hora",
+    "colAmount": "Quantidade",
+    "colPrice": "Preço",
+    "colGas": "Gas",
+    "noHistory": "Sem histórico ainda. Eventos de negociação aparecerão aqui.",
+    "prev": "← Ant.",
+    "next": "Próx. →"
+  },
+  "completedTrades": {
+    "title": "NEGOCIAÇÕES CONCLUÍDAS",
+    "subtitle": "Veja compras e vendas executadas de ofertas fixas e leilões.",
+    "allTrades": "Todas",
+    "myPurchases": "Minhas Compras",
+    "mySales": "Minhas Vendas",
+    "connectWalletHint": "Conecte sua carteira para filtrar negociações por comprador ou vendedor. Você ainda pode navegar por todas as negociações.",
+    "loading": "Carregando negociações...",
+    "noTrades": "Nenhuma negociação encontrada para a visualização atual.",
+    "goToMarketplace": "Ir ao Mercado",
+    "goToAuctions": "Ir aos Leilões",
+    "colType": "Tipo",
+    "colRef": "Ref.",
+    "colMeter": "Medidor",
+    "colEnergy": "Energia",
+    "colTotal": "Total",
+    "colBuyer": "Comprador",
+    "colSeller": "Vendedor",
+    "colTime": "Hora",
+    "colTx": "Tx",
+    "typeAuction": "LEILÃO",
+    "typeOffer": "OFERTA"
+  },
+  "txToast": {
+    "pending": "Enviando transação…",
+    "confirming": "Aguardando confirmação…",
+    "success": "Transação confirmada!",
+    "error": "Transação falhou"
+  },
+  "validationBadge": {
+    "pending": "PENDENTE",
+    "aggregating": "AGREGANDO",
+    "completed": "VALIDADO",
+    "failed": "FALHOU",
+    "oracleReading": "Leitura do oráculo:"
+  },
+  "addressBadge": {
+    "copied": "Copiado!",
+    "copyAddress": "Copiar endereço"
+  }
+}

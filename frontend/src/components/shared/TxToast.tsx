@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useTranslations } from "next-intl";
 
 export type TxState = "idle" | "pending" | "confirming" | "success" | "error";
 
@@ -10,16 +11,26 @@ interface TxToastProps {
   message?: string;
 }
 
-const STATE_CONFIG: Record<TxState, { color: string; label: string } | null> = {
+const STATE_COLORS: Record<TxState, string | null> = {
   idle:       null,
-  pending:    { color: "var(--amber)",   label: "Sending transaction…" },
-  confirming: { color: "var(--cyan)",    label: "Waiting for confirmation…" },
-  success:    { color: "var(--emerald)", label: "Transaction confirmed!" },
-  error:      { color: "var(--red)",     label: "Transaction failed" },
+  pending:    "var(--amber)",
+  confirming: "var(--cyan)",
+  success:    "var(--emerald)",
+  error:      "var(--red)",
 };
 
 export function TxToast({ state, onDismiss, message }: TxToastProps) {
-  const config = STATE_CONFIG[state];
+  const t = useTranslations("txToast");
+  const STATE_LABELS: Record<TxState, string | null> = {
+    idle:       null,
+    pending:    t("pending"),
+    confirming: t("confirming"),
+    success:    t("success"),
+    error:      t("error"),
+  };
+  const color = STATE_COLORS[state];
+  const label = STATE_LABELS[state];
+  const config = color && label ? { color, label } : null;
 
   useEffect(() => {
     if (state === "success" || state === "error") {

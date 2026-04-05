@@ -1,24 +1,26 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useOracleNodes } from "@/hooks/useOracleNodes";
 import { StatusDot } from "@/components/shared/StatusDot";
 
 export function OracleHealthMini() {
+  const t = useTranslations("oracleHealthMini");
   const nodes = useOracleNodes();
 
   return (
     <div className="panel p-4">
       <div className="flex items-center justify-between mb-3">
         <p className="font-data text-xs uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
-          Oracle Nodes
+          {t("oracleNodes")}
         </p>
         <Link
           href="/oracle-health"
           className="font-data text-xs"
           style={{ color: "var(--cyan)" }}
         >
-          Details →
+          {t("details")}
         </Link>
       </div>
 
@@ -34,13 +36,13 @@ export function OracleHealthMini() {
                   pulse={isOnline}
                 />
                 <span className="font-data text-xs" style={{ color: "var(--text-primary)" }}>
-                  Oracle {i + 1}
+                  {t("oracle", { n: i + 1 })}
                 </span>
               </div>
               <div className="text-right">
                 {node ? (
                   <span className="font-data text-xs" style={{ color: "var(--text-secondary)" }}>
-                    {isOnline ? `${node.latencyMs}ms` : "offline"}
+                    {isOnline ? `${node.latencyMs}ms` : t("offline")}
                   </span>
                 ) : (
                   <span className="font-data text-xs" style={{ color: "var(--text-muted)" }}>

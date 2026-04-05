@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useReadContract } from "wagmi";
+import { useTranslations } from "next-intl";
 import { EnergyTradingABI, CONTRACT_ADDRESSES } from "@/lib/contracts";
 import { hardhatLocal } from "@/lib/wagmi-config";
 import { formatEth, formatWh } from "@/lib/formatters";
@@ -16,6 +17,7 @@ interface BuyModalProps {
 }
 
 export function BuyModal({ offerId, onClose }: BuyModalProps) {
+  const t = useTranslations("buyModal");
   const [txState, setTxState] = useState<TxState>("idle");
   const { acceptOffer, isAcceptingOffer } = useEnergyTrading();
 
@@ -58,21 +60,21 @@ export function BuyModal({ offerId, onClose }: BuyModalProps) {
         style={{ borderColor: "var(--amber)" }}
       >
         <h2 className="font-display text-2xl" style={{ color: "var(--amber)" }}>
-          BUY ENERGY
+          {t("title")}
         </h2>
 
         {o && (
           <div className="space-y-2 font-data text-sm">
             <div className="flex justify-between">
-              <span style={{ color: "var(--text-muted)" }}>Amount</span>
+              <span style={{ color: "var(--text-muted)" }}>{t("amount")}</span>
               <span style={{ color: "var(--text-primary)" }}>{formatWh(o.amount)}</span>
             </div>
             <div className="flex justify-between">
-              <span style={{ color: "var(--text-muted)" }}>Total Cost</span>
+              <span style={{ color: "var(--text-muted)" }}>{t("totalCost")}</span>
               <span style={{ color: "var(--cyan)" }}>{formatEth(totalCost)}</span>
             </div>
             <div className="flex justify-between">
-              <span style={{ color: "var(--text-muted)" }}>Est. Gas</span>
+              <span style={{ color: "var(--text-muted)" }}>{t("estGas")}</span>
               <span style={{ color: "var(--text-muted)" }}>~80,000</span>
             </div>
           </div>
@@ -84,7 +86,7 @@ export function BuyModal({ offerId, onClose }: BuyModalProps) {
             className="flex-1 font-data text-xs py-2 rounded border"
             style={{ borderColor: "var(--bg-border)", color: "var(--text-muted)" }}
           >
-            Cancel
+            {t("cancel")}
           </button>
           <button
             onClick={handleConfirm}
@@ -96,14 +98,14 @@ export function BuyModal({ offerId, onClose }: BuyModalProps) {
               background: "rgba(255,165,0,0.1)",
             }}
           >
-            {txState === "pending" || txState === "confirming" ? "Processing…" : "Confirm"}
+            {txState === "pending" || txState === "confirming" ? t("processing") : t("confirm")}
           </button>
         </div>
 
         {txState === "success" && (
           <div className="pt-2 border-t space-y-3" style={{ borderColor: "var(--bg-border)" }}>
             <p className="font-data text-xs" style={{ color: "var(--text-muted)" }}>
-              Trade confirmed. You can review it in the completed trades view.
+              {t("successMessage")}
             </p>
             <Link
               href="/completed-trades"
@@ -114,7 +116,7 @@ export function BuyModal({ offerId, onClose }: BuyModalProps) {
                 background: "rgba(16,185,129,0.08)",
               }}
             >
-              View Completed Trades
+              {t("viewCompletedTrades")}
             </Link>
           </div>
         )}

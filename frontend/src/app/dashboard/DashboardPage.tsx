@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { OracleHealthMini } from "@/components/dashboard/OracleHealthMini";
@@ -7,39 +8,40 @@ import { useEnergyTrading } from "@/hooks/useEnergyTrading";
 import { useEnergyAuction } from "@/hooks/useEnergyAuction";
 
 export function DashboardPage() {
+  const t = useTranslations("dashboard");
   const { activeOffers } = useEnergyTrading();
   const { activeAuctions } = useEnergyAuction();
 
   return (
     <div className="space-y-6">
       <h1 className="font-display text-3xl" style={{ color: "var(--cyan)" }}>
-        SYSTEM OVERVIEW
+        {t("title")}
       </h1>
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          label="Active Offers"
+          label={t("activeOffers")}
           value={activeOffers?.length ?? 0}
-          unit="offers"
+          unit={t("offers")}
           color="amber"
         />
         <StatCard
-          label="Active Auctions"
+          label={t("activeAuctions")}
           value={activeAuctions?.length ?? 0}
-          unit="auctions"
+          unit={t("auctionsUnit")}
           color="cyan"
         />
         <StatCard
-          label="Oracle Nodes"
+          label={t("oracleNodes")}
           value={3}
-          unit="nodes"
+          unit={t("nodes")}
           color="emerald"
         />
         <StatCard
-          label="Network"
+          label={t("network")}
           value="Hardhat"
-          unit="local"
+          unit={t("local")}
           color="cyan"
         />
       </div>

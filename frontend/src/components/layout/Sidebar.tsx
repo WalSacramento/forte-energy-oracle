@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -12,18 +13,19 @@ import {
   ReceiptText,
 } from "lucide-react";
 
-const NAV_ITEMS = [
-  { href: "/dashboard",     icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/marketplace",   icon: ShoppingCart,    label: "Market" },
-  { href: "/auctions",      icon: Gavel,           label: "Auctions" },
-  { href: "/prosumer",      icon: User,            label: "Prosumer" },
-  { href: "/completed-trades", icon: ReceiptText,  label: "Trades" },
-  { href: "/oracle-health", icon: Activity,        label: "Oracle" },
-  { href: "/history",       icon: History,         label: "History" },
-];
-
 export function Sidebar() {
+  const t = useTranslations("nav");
   const pathname = usePathname();
+
+  const NAV_ITEMS = [
+    { href: "/dashboard",        icon: LayoutDashboard, label: t("dashboard") },
+    { href: "/marketplace",      icon: ShoppingCart,    label: t("market") },
+    { href: "/auctions",         icon: Gavel,           label: t("auctions") },
+    { href: "/prosumer",         icon: User,            label: t("prosumer") },
+    { href: "/completed-trades", icon: ReceiptText,     label: t("trades") },
+    { href: "/oracle-health",    icon: Activity,        label: t("oracle") },
+    { href: "/history",          icon: History,         label: t("history") },
+  ];
 
   return (
     <aside

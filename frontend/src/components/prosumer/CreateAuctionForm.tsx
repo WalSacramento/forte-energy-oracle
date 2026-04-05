@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { parseEther } from "viem";
+import { useTranslations } from "next-intl";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer,
 } from "recharts";
@@ -10,6 +11,7 @@ import { TxToast, type TxState } from "@/components/shared/TxToast";
 import { waitForLocalTransaction } from "@/lib/transactions";
 
 export function CreateAuctionForm() {
+  const t = useTranslations("createAuctionForm");
   const [meterId, setMeterId] = useState("METER001");
   const [energyAmount, setEnergyAmount] = useState("500");
   const [startPriceEth, setStartPriceEth] = useState("0.01");
@@ -79,23 +81,23 @@ export function CreateAuctionForm() {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label style={labelStyle}>Meter ID</label>
+            <label style={labelStyle}>{t("meterId")}</label>
             <input style={inputStyle} value={meterId} onChange={(e) => setMeterId(e.target.value)} />
           </div>
           <div>
-            <label style={labelStyle}>Energy Amount (Wh)</label>
+            <label style={labelStyle}>{t("energyAmount")}</label>
             <input style={inputStyle} type="number" value={energyAmount} onChange={(e) => setEnergyAmount(e.target.value)} />
           </div>
           <div>
-            <label style={labelStyle}>Start Price (ETH/Wh)</label>
+            <label style={labelStyle}>{t("startPrice")}</label>
             <input style={inputStyle} type="number" step="0.0001" value={startPriceEth} onChange={(e) => setStartPriceEth(e.target.value)} />
           </div>
           <div>
-            <label style={labelStyle}>Min Price (ETH/Wh)</label>
+            <label style={labelStyle}>{t("minPrice")}</label>
             <input style={inputStyle} type="number" step="0.0001" value={minPriceEth} onChange={(e) => setMinPriceEth(e.target.value)} />
           </div>
           <div>
-            <label style={labelStyle}>Duration (minutes)</label>
+            <label style={labelStyle}>{t("duration")}</label>
             <input style={inputStyle} type="number" value={durationMin} onChange={(e) => setDurationMin(e.target.value)} />
           </div>
           <button
@@ -108,13 +110,13 @@ export function CreateAuctionForm() {
               background: "rgba(0,229,255,0.1)",
             }}
           >
-            {txState === "pending" || txState === "confirming" ? "Processing..." : "Create Auction"}
+            {txState === "pending" || txState === "confirming" ? t("processing") : t("createAuction")}
           </button>
         </form>
 
         {/* Live decay preview */}
         <div>
-          <p style={labelStyle}>Price Decay Preview</p>
+          <p style={labelStyle}>{t("priceDecayPreview")}</p>
           <div className="panel p-3" style={{ height: 200 }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
@@ -122,7 +124,7 @@ export function CreateAuctionForm() {
                 <XAxis
                   dataKey="t"
                   tick={{ fill: "var(--text-muted)", fontSize: 10, fontFamily: "var(--font-space)" }}
-                  label={{ value: "min", position: "insideRight", fill: "var(--text-muted)", fontSize: 10 }}
+                  label={{ value: t("minutes"), position: "insideRight", fill: "var(--text-muted)", fontSize: 10 }}
                 />
                 <YAxis
                   tick={{ fill: "var(--text-muted)", fontSize: 10, fontFamily: "var(--font-space)" }}

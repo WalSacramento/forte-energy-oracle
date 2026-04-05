@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { parseEther } from "viem";
+import { useTranslations } from "next-intl";
 import { useEnergyTrading } from "@/hooks/useEnergyTrading";
 import { TxToast, type TxState } from "@/components/shared/TxToast";
 import { waitForLocalTransaction } from "@/lib/transactions";
 
 export function CreateOfferForm() {
+  const t = useTranslations("createOfferForm");
   const [meterId, setMeterId] = useState("METER001");
   const [amount, setAmount] = useState("1000");
   const [pricePerWh, setPricePerWh] = useState("0.0001");
@@ -59,15 +61,15 @@ export function CreateOfferForm() {
     <>
       <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
         <div>
-          <label style={labelStyle}>Meter ID</label>
+          <label style={labelStyle}>{t("meterId")}</label>
           <input style={inputStyle} value={meterId} onChange={(e) => setMeterId(e.target.value)} />
         </div>
         <div>
-          <label style={labelStyle}>Energy Amount (Wh)</label>
+          <label style={labelStyle}>{t("energyAmount")}</label>
           <input style={inputStyle} type="number" value={amount} onChange={(e) => setAmount(e.target.value)} />
         </div>
         <div>
-          <label style={labelStyle}>Price per Wh (ETH)</label>
+          <label style={labelStyle}>{t("pricePerWh")}</label>
           <input style={inputStyle} type="number" step="0.00001" value={pricePerWh} onChange={(e) => setPricePerWh(e.target.value)} />
         </div>
         <button
@@ -80,7 +82,7 @@ export function CreateOfferForm() {
             background: "rgba(255,165,0,0.1)",
           }}
         >
-          {txState === "pending" || txState === "confirming" ? "Processing..." : "Create Offer"}
+          {txState === "pending" || txState === "confirming" ? t("processing") : t("createOffer")}
         </button>
       </form>
       <TxToast state={txState} onDismiss={() => setTxState("idle")} />

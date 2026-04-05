@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useWatchContractEvent } from "wagmi";
+import { useTranslations } from "next-intl";
 import { EnergyTradingABI, EnergyAuctionABI, CONTRACT_ADDRESSES } from "@/lib/contracts";
 import { hardhatLocal } from "@/lib/wagmi-config";
 import { formatTimestamp } from "@/lib/formatters";
@@ -15,6 +16,7 @@ interface FeedEvent {
 }
 
 export function ActivityFeed() {
+  const t = useTranslations("activityFeed");
   const [events, setEvents] = useState<FeedEvent[]>([]);
 
   const addEvent = (e: Omit<FeedEvent, "id">) => {
@@ -34,7 +36,7 @@ export function ActivityFeed() {
         const args = (log as { args?: Record<string, unknown> }).args ?? {};
         addEvent({
           type: "OFFER_CREATED",
-          description: `Offer #${args.offerId ?? "?"} created — ${args.amount ?? "?"} Wh`,
+          description: t("offerCreated", { id: String(args.offerId ?? "?"), amount: String(args.amount ?? "?") }),
           color: "var(--amber)",
           timestamp: Date.now(),
         });
@@ -52,7 +54,7 @@ export function ActivityFeed() {
         const args = (log as { args?: Record<string, unknown> }).args ?? {};
         addEvent({
           type: "TRADE",
-          description: `Trade #${args.tradeId ?? "?"} — ${args.amount ?? "?"} Wh`,
+          description: t("tradeExecuted", { id: String(args.tradeId ?? "?"), amount: String(args.amount ?? "?") }),
           color: "var(--emerald)",
           timestamp: Date.now(),
         });
@@ -70,7 +72,7 @@ export function ActivityFeed() {
         const args = (log as { args?: Record<string, unknown> }).args ?? {};
         addEvent({
           type: "AUCTION",
-          description: `Auction #${args.auctionId ?? "?"} created — ${args.energyAmount ?? "?"} Wh`,
+          description: t("auctionCreated", { id: String(args.auctionId ?? "?"), amount: String(args.energyAmount ?? "?") }),
           color: "var(--cyan)",
           timestamp: Date.now(),
         });
@@ -88,7 +90,7 @@ export function ActivityFeed() {
         const args = (log as { args?: Record<string, unknown> }).args ?? {};
         addEvent({
           type: "BID",
-          description: `Bid on Auction #${args.auctionId ?? "?"}`,
+          description: t("bidAccepted", { id: String(args.auctionId ?? "?") }),
           color: "var(--cyan)",
           timestamp: Date.now(),
         });
@@ -99,12 +101,12 @@ export function ActivityFeed() {
   return (
     <div className="panel p-4 h-64 overflow-y-auto">
       <p className="font-data text-xs mb-3 uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
-        Live Activity
+        {t("liveActivity")}
       </p>
 
       {events.length === 0 ? (
         <p className="font-data text-xs" style={{ color: "var(--text-muted)" }}>
-          Waiting for events…
+          {t("waiting")}
         </p>
       ) : (
         <ul className="space-y-2">

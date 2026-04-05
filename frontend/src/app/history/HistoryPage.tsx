@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
   ResponsiveContainer,
@@ -20,6 +21,7 @@ interface TradeEvent {
 const PAGE_SIZE = 20;
 
 export function HistoryPage() {
+  const t = useTranslations("history");
   const [events, setEvents] = useState<TradeEvent[]>([]);
   const [page, setPage] = useState(0);
 
@@ -59,7 +61,7 @@ export function HistoryPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="font-display text-3xl" style={{ color: "var(--text-primary)" }}>
-          TRADE HISTORY
+          {t("title")}
         </h1>
         <div className="flex items-center gap-2">
           <Link
@@ -71,7 +73,7 @@ export function HistoryPage() {
               background: "rgba(0,229,255,0.08)",
             }}
           >
-            Completed Trades
+            {t("completedTrades")}
           </Link>
           <button
             onClick={handleExportCSV}
@@ -82,7 +84,7 @@ export function HistoryPage() {
               background: "rgba(0,230,118,0.07)",
             }}
           >
-            Export CSV
+            {t("exportCsv")}
           </button>
         </div>
       </div>
@@ -91,7 +93,7 @@ export function HistoryPage() {
       {chartData.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="panel p-4">
-            <p className="font-data text-xs mb-2" style={{ color: "var(--text-muted)" }}>VOLUME (Wh)</p>
+            <p className="font-data text-xs mb-2" style={{ color: "var(--text-muted)" }}>{t("volume")}</p>
             <ResponsiveContainer width="100%" height={100}>
               <AreaChart data={chartData}>
                 <Area type="monotone" dataKey="volume" stroke="var(--amber)" fill="rgba(255,165,0,0.15)" />
@@ -99,7 +101,7 @@ export function HistoryPage() {
             </ResponsiveContainer>
           </div>
           <div className="panel p-4">
-            <p className="font-data text-xs mb-2" style={{ color: "var(--text-muted)" }}>GAS USED</p>
+            <p className="font-data text-xs mb-2" style={{ color: "var(--text-muted)" }}>{t("gasUsed")}</p>
             <ResponsiveContainer width="100%" height={100}>
               <BarChart data={chartData}>
                 <Bar dataKey="gas" fill="var(--cyan)" />
@@ -107,7 +109,7 @@ export function HistoryPage() {
             </ResponsiveContainer>
           </div>
           <div className="panel p-4">
-            <p className="font-data text-xs mb-2" style={{ color: "var(--text-muted)" }}>AVG SIZE (Wh)</p>
+            <p className="font-data text-xs mb-2" style={{ color: "var(--text-muted)" }}>{t("avgSize")}</p>
             <ResponsiveContainer width="100%" height={100}>
               <LineChart data={chartData}>
                 <Line type="monotone" dataKey="size" stroke="var(--emerald)" dot={false} />
@@ -122,18 +124,18 @@ export function HistoryPage() {
         <table className="w-full font-data text-xs">
           <thead>
             <tr style={{ borderBottom: "1px solid var(--bg-border)", color: "var(--text-muted)" }}>
-              <th className="text-left p-3">Type</th>
-              <th className="text-left p-3">Time</th>
-              <th className="text-right p-3">Amount</th>
-              <th className="text-right p-3">Price</th>
-              <th className="text-right p-3">Gas</th>
+              <th className="text-left p-3">{t("colType")}</th>
+              <th className="text-left p-3">{t("colTime")}</th>
+              <th className="text-right p-3">{t("colAmount")}</th>
+              <th className="text-right p-3">{t("colPrice")}</th>
+              <th className="text-right p-3">{t("colGas")}</th>
             </tr>
           </thead>
           <tbody>
             {paginated.length === 0 ? (
               <tr>
                 <td colSpan={5} className="p-6 text-center" style={{ color: "var(--text-muted)" }}>
-                  No history yet. Trade events will appear here.
+                  {t("noHistory")}
                 </td>
               </tr>
             ) : (
@@ -175,7 +177,7 @@ export function HistoryPage() {
               className="font-data text-xs px-2 py-1 rounded border disabled:opacity-30"
               style={{ borderColor: "var(--bg-border)", color: "var(--text-secondary)" }}
             >
-              ← Prev
+              {t("prev")}
             </button>
             <span className="font-data text-xs" style={{ color: "var(--text-muted)" }}>
               {page + 1} / {totalPages}
@@ -186,7 +188,7 @@ export function HistoryPage() {
               className="font-data text-xs px-2 py-1 rounded border disabled:opacity-30"
               style={{ borderColor: "var(--bg-border)", color: "var(--text-secondary)" }}
             >
-              Next →
+              {t("next")}
             </button>
           </div>
         )}

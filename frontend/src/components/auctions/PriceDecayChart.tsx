@@ -4,6 +4,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ReferenceLine, ReferenceDot, ResponsiveContainer,
 } from "recharts";
+import { useTranslations } from "next-intl";
 
 interface PriceDecayChartProps {
   startPrice: bigint;
@@ -22,6 +23,7 @@ export function PriceDecayChart({
   endTime,
   currentPrice,
 }: PriceDecayChartProps) {
+  const t = useTranslations("priceDecayChart");
   const durationS = Number(endTime - startTime);
   const POINTS = 60;
 
@@ -49,7 +51,7 @@ export function PriceDecayChart({
           <XAxis
             dataKey="t"
             tick={{ fill: "var(--text-muted)", fontSize: 10, fontFamily: "var(--font-space)" }}
-            label={{ value: "min", position: "insideBottomRight", fill: "var(--text-muted)", fontSize: 10 }}
+            label={{ value: t("minutes"), position: "insideBottomRight", fill: "var(--text-muted)", fontSize: 10 }}
           />
           <YAxis
             tick={{ fill: "var(--text-muted)", fontSize: 10, fontFamily: "var(--font-space)" }}
@@ -64,7 +66,7 @@ export function PriceDecayChart({
             }}
             labelStyle={{ color: "var(--text-muted)" }}
             itemStyle={{ color: "var(--cyan)" }}
-            formatter={(v: number) => [`${v.toFixed(6)} ETH`, "Price/Wh"]}
+            formatter={(v: number) => [`${v.toFixed(6)} ETH`, t("pricePerWh")]}
           />
           {/* Min price reference line */}
           <ReferenceLine y={minPriceEth} stroke="var(--red)" strokeDasharray="4 4" />

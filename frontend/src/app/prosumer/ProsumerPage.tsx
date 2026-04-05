@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAccount } from "wagmi";
+import { useTranslations } from "next-intl";
 import { PositionTimeline } from "@/components/prosumer/PositionTimeline";
 import { CreateOfferForm } from "@/components/prosumer/CreateOfferForm";
 import { CreateAuctionForm } from "@/components/prosumer/CreateAuctionForm";
@@ -10,6 +11,7 @@ type MainTab = "positions" | "create";
 type CreateTab = "offer" | "auction";
 
 export function ProsumerPage() {
+  const t = useTranslations("prosumer");
   const { isConnected } = useAccount();
   const [mainTab, setMainTab] = useState<MainTab>("positions");
   const [createTab, setCreateTab] = useState<CreateTab>("offer");
@@ -31,7 +33,7 @@ export function ProsumerPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <p className="font-data text-sm" style={{ color: "var(--text-muted)" }}>
-          Connect your wallet to access the Prosumer Panel.
+          {t("connectWallet")}
         </p>
       </div>
     );
@@ -40,16 +42,16 @@ export function ProsumerPage() {
   return (
     <div className="space-y-6">
       <h1 className="font-display text-3xl" style={{ color: "var(--amber)" }}>
-        PROSUMER PANEL
+        {t("title")}
       </h1>
 
       {/* Main tabs */}
       <div className="flex gap-6 border-b" style={{ borderColor: "var(--bg-border)" }}>
         <button style={tabStyle(mainTab === "positions")} onClick={() => setMainTab("positions")}>
-          My Positions
+          {t("myPositions")}
         </button>
         <button style={tabStyle(mainTab === "create")} onClick={() => setMainTab("create")}>
-          Create
+          {t("create")}
         </button>
       </div>
 
@@ -60,10 +62,10 @@ export function ProsumerPage() {
           {/* Create inner tabs */}
           <div className="flex gap-4 border-b" style={{ borderColor: "var(--bg-border)" }}>
             <button style={tabStyle(createTab === "offer")} onClick={() => setCreateTab("offer")}>
-              Fixed Offer
+              {t("fixedOffer")}
             </button>
             <button style={tabStyle(createTab === "auction")} onClick={() => setCreateTab("auction")}>
-              Dutch Auction
+              {t("dutchAuction")}
             </button>
           </div>
 

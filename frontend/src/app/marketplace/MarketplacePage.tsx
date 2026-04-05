@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useEnergyTrading } from "@/hooks/useEnergyTrading";
 import { OfferCard } from "@/components/marketplace/OfferCard";
 import { BuyModal } from "@/components/marketplace/BuyModal";
 
 export function MarketplacePage() {
+  const t = useTranslations("marketplace");
   const { activeOffers } = useEnergyTrading();
   const [selectedOffer, setSelectedOffer] = useState<bigint | null>(null);
 
@@ -16,7 +18,7 @@ export function MarketplacePage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <h1 className="font-display text-3xl" style={{ color: "var(--amber)" }}>
-          ENERGY MARKETPLACE
+          {t("title")}
         </h1>
         <Link
           href="/completed-trades"
@@ -27,14 +29,14 @@ export function MarketplacePage() {
             background: "rgba(16,185,129,0.08)",
           }}
         >
-          View Completed Trades
+          {t("viewCompletedTrades")}
         </Link>
       </div>
 
       {offerIds.length === 0 ? (
         <div className="space-y-2">
           <p className="font-data text-sm" style={{ color: "var(--text-muted)" }}>
-            No active offers. Sellers can create offers in the Prosumer panel.
+            {t("noActiveOffers")}
           </p>
           <Link
             href="/completed-trades"
@@ -45,7 +47,7 @@ export function MarketplacePage() {
               background: "rgba(16,185,129,0.08)",
             }}
           >
-            Check recently completed trades
+            {t("checkRecentTrades")}
           </Link>
         </div>
       ) : (
