@@ -1,14 +1,22 @@
 "use client";
 
 import { useAccount, useConnect, useDisconnect, useBlockNumber } from "wagmi";
-import { injected } from "@wagmi/core";
 import { truncateAddress } from "@/lib/formatters";
 
 export function TopBar() {
   const { address, isConnected } = useAccount();
-  const { connect } = useConnect();
+  const { connect, connectors, isPending } = useConnect();
   const { disconnect } = useDisconnect();
   const { data: blockNumber } = useBlockNumber({ watch: true });
+  const injectedConnector = connectors.find((connector) => connector.id === "injected");
+
+  const handleConnect = () => {
+    if (!injectedConnector || isPending) {
+      return;
+    }
+
+    connect({ connector: injectedConnector });
+  };
 
   return (
     <header
@@ -59,15 +67,16 @@ export function TopBar() {
           </div>
         ) : (
           <button
-            onClick={() => connect({ connector: injected() })}
-            className="font-data text-xs px-3 py-1.5 rounded border transition-colors"
+            onClick={handleConnect}
+            disabled={!injectedConnector || isPending}
+            className="font-data text-xs px-3 py-1.5 rounded border transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
               color: "var(--cyan)",
               borderColor: "var(--cyan)",
               background: "rgba(0,229,255,0.08)",
             }}
           >
-            Connect Wallet
+            {isPending ? "Connecting..." : "Connect Wallet"}
           </button>
         )}
       </div>

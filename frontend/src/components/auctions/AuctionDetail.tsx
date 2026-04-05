@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useReadContract } from "wagmi";
 import { EnergyAuctionABI, CONTRACT_ADDRESSES } from "@/lib/contracts";
@@ -11,6 +12,7 @@ import { PriceDecayChart } from "./PriceDecayChart";
 import { ValidationBadge } from "@/components/shared/ValidationBadge";
 import { TxToast, type TxState } from "@/components/shared/TxToast";
 import { motion } from "framer-motion";
+import { waitForLocalTransaction } from "@/lib/transactions";
 
 const AUCTION_STATUS_LABELS = ["Active", "Pending Validation", "Finalized", "Cancelled"];
 
@@ -67,18 +69,28 @@ export function AuctionDetail({ auctionId }: { auctionId: bigint }) {
     ? "FAILED"
     : "PENDING";
 
-  const handleBid = () => {
+  const handleBid = async () => {
     setTxState("pending");
-    placeBid(auctionId, totalCost);
-    setTxState("confirming");
-    setTimeout(() => setTxState("success"), 3000);
+    try {
+      const hash = await placeBid(auctionId, totalCost);
+      setTxState("confirming");
+      await waitForLocalTransaction(hash);
+      setTxState("success");
+    } catch {
+      setTxState("error");
+    }
   };
 
-  const handleFinalize = () => {
+  const handleFinalize = async () => {
     setTxState("pending");
-    finalizeAuction(auctionId);
-    setTxState("confirming");
-    setTimeout(() => setTxState("success"), 3000);
+    try {
+      const hash = await finalizeAuction(auctionId);
+      setTxState("confirming");
+      await waitForLocalTransaction(hash);
+      setTxState("success");
+    } catch {
+      setTxState("error");
+    }
   };
 
   return (
@@ -142,6 +154,7 @@ export function AuctionDetail({ auctionId }: { auctionId: bigint }) {
           {isActive && !isExpired && (
             <button
               onClick={handleBid}
+              disabled={txState === "pending" || txState === "confirming"}
               className="w-full font-data text-sm py-3 rounded border transition-colors"
               style={{
                 color: "var(--cyan)",
@@ -156,6 +169,7 @@ export function AuctionDetail({ auctionId }: { auctionId: bigint }) {
           {isPendingValidation && (
             <button
               onClick={handleFinalize}
+              disabled={txState === "pending" || txState === "confirming"}
               className="w-full font-data text-sm py-3 rounded border"
               style={{
                 color: "var(--emerald)",
@@ -171,6 +185,22 @@ export function AuctionDetail({ auctionId }: { auctionId: bigint }) {
             <p className="font-data text-xs text-center" style={{ color: "var(--text-muted)" }}>
               Auction expired — seller can cancel
             </p>
+          )}
+
+          {txState === "success" && (
+            <div className="pt-2">
+              <Link
+                href="/completed-trades"
+                className="inline-flex font-data text-xs px-3 py-2 rounded border transition-colors"
+                style={{
+                  color: "var(--emerald)",
+                  borderColor: "var(--emerald)",
+                  background: "rgba(16,185,129,0.08)",
+                }}
+              >
+                View Completed Trades
+              </Link>
+            </div>
           )}
         </div>
       </div>

@@ -7,6 +7,7 @@ import {
 } from "recharts";
 import { useEnergyAuction } from "@/hooks/useEnergyAuction";
 import { TxToast, type TxState } from "@/components/shared/TxToast";
+import { waitForLocalTransaction } from "@/lib/transactions";
 
 export function CreateAuctionForm() {
   const [meterId, setMeterId] = useState("METER001");
@@ -35,15 +36,17 @@ export function CreateAuctionForm() {
     e.preventDefault();
     setTxState("pending");
     try {
-      createAuction(
+      const hash = await createAuction(
         meterId,
         BigInt(energyAmount),
         parseEther(startPriceEth),
         parseEther(minPriceEth),
         BigInt(parseInt(durationMin) * 60)
       );
+
       setTxState("confirming");
-      setTimeout(() => setTxState("success"), 3000);
+      await waitForLocalTransaction(hash);
+      setTxState("success");
     } catch {
       setTxState("error");
     }
@@ -97,6 +100,7 @@ export function CreateAuctionForm() {
           </div>
           <button
             type="submit"
+            disabled={txState === "pending" || txState === "confirming"}
             className="font-data text-xs px-4 py-2 rounded border"
             style={{
               color: "var(--cyan)",
@@ -104,7 +108,7 @@ export function CreateAuctionForm() {
               background: "rgba(0,229,255,0.1)",
             }}
           >
-            Create Auction
+            {txState === "pending" || txState === "confirming" ? "Processing..." : "Create Auction"}
           </button>
         </form>
 

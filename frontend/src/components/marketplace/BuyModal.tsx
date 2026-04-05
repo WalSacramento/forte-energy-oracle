@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useReadContract } from "wagmi";
 import { EnergyTradingABI, CONTRACT_ADDRESSES } from "@/lib/contracts";
@@ -7,6 +8,7 @@ import { hardhatLocal } from "@/lib/wagmi-config";
 import { formatEth, formatWh } from "@/lib/formatters";
 import { useEnergyTrading } from "@/hooks/useEnergyTrading";
 import { TxToast, type TxState } from "@/components/shared/TxToast";
+import { waitForLocalTransaction } from "@/lib/transactions";
 
 interface BuyModalProps {
   offerId: bigint;
@@ -32,13 +34,11 @@ export function BuyModal({ offerId, onClose }: BuyModalProps) {
     if (!o) return;
     setTxState("pending");
     try {
-      acceptOffer(offerId, totalCost);
+      const hash = await acceptOffer(offerId, totalCost);
       setTxState("confirming");
-      // Optimistically close after a short delay
-      setTimeout(() => {
-        setTxState("success");
-        setTimeout(onClose, 2000);
-      }, 2000);
+      await waitForLocalTransaction(hash);
+      setTxState("success");
+      setTimeout(onClose, 2000);
     } catch {
       setTxState("error");
     }
@@ -99,6 +99,25 @@ export function BuyModal({ offerId, onClose }: BuyModalProps) {
             {txState === "pending" || txState === "confirming" ? "Processing…" : "Confirm"}
           </button>
         </div>
+
+        {txState === "success" && (
+          <div className="pt-2 border-t space-y-3" style={{ borderColor: "var(--bg-border)" }}>
+            <p className="font-data text-xs" style={{ color: "var(--text-muted)" }}>
+              Trade confirmed. You can review it in the completed trades view.
+            </p>
+            <Link
+              href="/completed-trades"
+              className="inline-flex font-data text-xs px-3 py-2 rounded border transition-colors"
+              style={{
+                color: "var(--emerald)",
+                borderColor: "var(--emerald)",
+                background: "rgba(16,185,129,0.08)",
+              }}
+            >
+              View Completed Trades
+            </Link>
+          </div>
+        )}
       </div>
 
       <TxToast state={txState} onDismiss={() => setTxState("idle")} />

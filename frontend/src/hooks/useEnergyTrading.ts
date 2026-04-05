@@ -28,9 +28,9 @@ export function useEnergyTrading() {
     functionName: "getActiveOffers",
   });
 
-  const { writeContract: writeCreateOffer, isPending: isCreatingOffer } = useWriteContract();
-  const { writeContract: writeAcceptOffer, isPending: isAcceptingOffer } = useWriteContract();
-  const { writeContract: writeCancelOffer, isPending: isCancellingOffer } = useWriteContract();
+  const { writeContractAsync: writeCreateOffer, isPending: isCreatingOffer } = useWriteContract();
+  const { writeContractAsync: writeAcceptOffer, isPending: isAcceptingOffer } = useWriteContract();
+  const { writeContractAsync: writeCancelOffer, isPending: isCancellingOffer } = useWriteContract();
 
   const createOffer = useCallback(
     (meterId: string, amount: bigint, pricePerWh: bigint, duration: bigint) =>

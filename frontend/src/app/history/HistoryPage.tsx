@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
@@ -60,17 +61,30 @@ export function HistoryPage() {
         <h1 className="font-display text-3xl" style={{ color: "var(--text-primary)" }}>
           TRADE HISTORY
         </h1>
-        <button
-          onClick={handleExportCSV}
-          className="font-data text-xs px-3 py-1.5 rounded border transition-colors"
-          style={{
-            color: "var(--emerald)",
-            borderColor: "var(--emerald)",
-            background: "rgba(0,230,118,0.07)",
-          }}
-        >
-          Export CSV
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/completed-trades"
+            className="font-data text-xs px-3 py-1.5 rounded border transition-colors"
+            style={{
+              color: "var(--cyan)",
+              borderColor: "var(--cyan)",
+              background: "rgba(0,229,255,0.08)",
+            }}
+          >
+            Completed Trades
+          </Link>
+          <button
+            onClick={handleExportCSV}
+            className="font-data text-xs px-3 py-1.5 rounded border transition-colors"
+            style={{
+              color: "var(--emerald)",
+              borderColor: "var(--emerald)",
+              background: "rgba(0,230,118,0.07)",
+            }}
+          >
+            Export CSV
+          </button>
+        </div>
       </div>
 
       {/* Charts */}

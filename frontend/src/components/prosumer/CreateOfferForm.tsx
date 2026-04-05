@@ -4,6 +4,7 @@ import { useState } from "react";
 import { parseEther } from "viem";
 import { useEnergyTrading } from "@/hooks/useEnergyTrading";
 import { TxToast, type TxState } from "@/components/shared/TxToast";
+import { waitForLocalTransaction } from "@/lib/transactions";
 
 export function CreateOfferForm() {
   const [meterId, setMeterId] = useState("METER001");
@@ -17,14 +18,16 @@ export function CreateOfferForm() {
     e.preventDefault();
     setTxState("pending");
     try {
-      createOffer(
+      const hash = await createOffer(
         meterId,
         BigInt(amount),
         parseEther(pricePerWh),
         0n // use default duration
       );
+
       setTxState("confirming");
-      setTimeout(() => setTxState("success"), 3000);
+      await waitForLocalTransaction(hash);
+      setTxState("success");
     } catch {
       setTxState("error");
     }
@@ -69,7 +72,7 @@ export function CreateOfferForm() {
         </div>
         <button
           type="submit"
-          disabled={isCreatingOffer}
+          disabled={isCreatingOffer || txState === "pending" || txState === "confirming"}
           className="font-data text-xs px-4 py-2 rounded border disabled:opacity-50"
           style={{
             color: "var(--amber)",
@@ -77,7 +80,7 @@ export function CreateOfferForm() {
             background: "rgba(255,165,0,0.1)",
           }}
         >
-          Create Offer
+          {txState === "pending" || txState === "confirming" ? "Processing..." : "Create Offer"}
         </button>
       </form>
       <TxToast state={txState} onDismiss={() => setTxState("idle")} />

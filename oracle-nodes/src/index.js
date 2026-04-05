@@ -5,6 +5,7 @@
 
 require('dotenv').config();
 const OracleNode = require('./OracleNode');
+const cors = require('cors');
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
@@ -59,6 +60,23 @@ const oracleNode = new OracleNode(config);
 
 // Express server for metrics and health
 const app = express();
+const allowedOrigins = new Set([
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3001'
+]);
+
+app.use(cors({
+    origin(origin, callback) {
+        if (!origin || allowedOrigins.has(origin)) {
+            callback(null, true);
+            return;
+        }
+
+        callback(new Error(`Origin not allowed by CORS: ${origin}`));
+    }
+}));
 
 app.get('/health', (req, res) => {
     res.json({

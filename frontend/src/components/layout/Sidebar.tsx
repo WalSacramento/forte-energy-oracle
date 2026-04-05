@@ -9,6 +9,7 @@ import {
   User,
   Activity,
   History,
+  ReceiptText,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -16,6 +17,7 @@ const NAV_ITEMS = [
   { href: "/marketplace",   icon: ShoppingCart,    label: "Market" },
   { href: "/auctions",      icon: Gavel,           label: "Auctions" },
   { href: "/prosumer",      icon: User,            label: "Prosumer" },
+  { href: "/completed-trades", icon: ReceiptText,  label: "Trades" },
   { href: "/oracle-health", icon: Activity,        label: "Oracle" },
   { href: "/history",       icon: History,         label: "History" },
 ];

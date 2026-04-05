@@ -28,10 +28,10 @@ export function useEnergyAuction() {
     functionName: "getActiveAuctions",
   });
 
-  const { writeContract: writeCreate } = useWriteContract();
-  const { writeContract: writeBid } = useWriteContract();
-  const { writeContract: writeFinalize } = useWriteContract();
-  const { writeContract: writeCancel } = useWriteContract();
+  const { writeContractAsync: writeCreate } = useWriteContract();
+  const { writeContractAsync: writeBid } = useWriteContract();
+  const { writeContractAsync: writeFinalize } = useWriteContract();
+  const { writeContractAsync: writeCancel } = useWriteContract();
 
   const createAuction = useCallback(
     (meterId: string, energyAmount: bigint, startPrice: bigint, minPrice: bigint, duration: bigint) =>
