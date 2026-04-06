@@ -18,9 +18,11 @@ Crie um arquivo `.env.testnet.docker` na raiz do projeto:
 # Sepolia RPC Provider
 SEPOLIA_RPC=https://sepolia.infura.io/v3/YOUR_PROJECT_ID
 
-# Contract Address (do deploy na Sepolia)
-# Este é o endereço do OracleAggregator
-CONTRACT_ADDRESS=0xB48f83eecb7Fa564A408555B30c43a167beeD232
+# Contract Addresses (do deploy na Sepolia — veja GUIA-DEPLOY-SEPOLIA.md)
+CONTRACT_ADDRESS=0x...          # OracleAggregator
+ENERGY_TRADING_ADDRESS=0x...    # EnergyTrading
+GRID_VALIDATOR_ADDRESS=0x...    # GridValidator
+ENERGY_AUCTION_ADDRESS=0x...    # EnergyAuction
 
 # Private Keys (do seu .env.testnet)
 # ⚠️ IMPORTANTE: Use as MESMAS chaves que foram usadas no deploy!

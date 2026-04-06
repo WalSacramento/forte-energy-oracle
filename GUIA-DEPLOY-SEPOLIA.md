@@ -7,7 +7,7 @@ Este guia explica como fazer deploy dos contratos EAON na Sepolia testnet e exec
 ### 1. Obter ETH de Teste (Sepolia)
 
 Você precisará de aproximadamente **0.5-1 ETH** de teste para:
-- Deployment dos 3 contratos: ~0.3 ETH
+- Deployment dos 4 contratos: ~0.4 ETH
 - Testes de performance: ~0.2-0.5 ETH
 
 **Faucets Recomendados:**
@@ -54,8 +54,11 @@ ORACLE_3_PRIVATE_KEY=0x...
 # Etherscan API Key (para verificação de contratos)
 ETHERSCAN_API_KEY=YOUR_ETHERSCAN_KEY
 
-# Contract Address (será preenchido após deploy)
+# Contract Addresses (preenchidos após deploy)
 CONTRACT_ADDRESS=
+ENERGY_TRADING_ADDRESS=
+GRID_VALIDATOR_ADDRESS=
+ENERGY_AUCTION_ADDRESS=
 ```
 
 **⚠️ IMPORTANTE:**
@@ -123,6 +126,9 @@ DEPLOYING CONTRACTS
 3️⃣  Deploying EnergyTrading...
    ✓ Deployed to: 0xe7f1a...
 
+4️⃣  Deploying EnergyAuction...
+   ✓ Deployed to: 0xd4a2b...
+
 ───────────────────────────────────────────
 REGISTERING ORACLES
 ───────────────────────────────────────────
@@ -139,10 +145,13 @@ DEPLOYMENT SUCCESSFUL!
 
 ### 2. Atualizar .env.testnet
 
-Após o deploy, copie o endereço do `OracleAggregator` e adicione ao `.env.testnet`:
+Após o deploy, copie os endereços dos contratos e adicione ao `.env.testnet`:
 
 ```bash
-CONTRACT_ADDRESS=0x5FbDB2315678afecb367f032d93F642f64180aa3
+CONTRACT_ADDRESS=0x...        # OracleAggregator
+ENERGY_TRADING_ADDRESS=0x...  # EnergyTrading
+GRID_VALIDATOR_ADDRESS=0x...  # GridValidator
+ENERGY_AUCTION_ADDRESS=0x...  # EnergyAuction
 ```
 
 ### 3. Verificar Contratos no Etherscan (Opcional)
@@ -519,7 +528,7 @@ cast call CONTRACT_ADDRESS "getActiveOracleCount()" --rpc-url $SEPOLIA_RPC
 - [ ] Criar `.env.testnet` com todas as chaves
 - [ ] Verificar balance do deployer
 - [ ] Executar deploy: `npm run testnet:deploy`
-- [ ] Atualizar `CONTRACT_ADDRESS` no `.env.testnet`
+- [ ] Atualizar `CONTRACT_ADDRESS`, `ENERGY_TRADING_ADDRESS`, `GRID_VALIDATOR_ADDRESS` e `ENERGY_AUCTION_ADDRESS` no `.env.testnet`
 - [ ] (Opcional) Verificar contratos: `npm run testnet:verify`
 - [ ] Iniciar HEMS API localmente
 - [ ] Iniciar oracles apontando para Sepolia

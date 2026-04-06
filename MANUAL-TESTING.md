@@ -1,21 +1,45 @@
-# Guia de Teste Manual - EAON
+# Manual Testing Guide — EAON Fullstack
 
-Este guia mostra como subir a aplicação manualmente e testar com Postman.
+This guide covers the manual startup sequence and verification procedures for the full EAON stack, including the blockchain layer, oracle nodes, mock HEMS API, and the Next.js frontend dashboard.
 
-## 🚀 Ordem de Startup
+## Startup Sequence
 
-### 1️⃣ Terminal 1: Hardhat Node (Blockchain)
+### Option A: Docker (Recommended)
+
+Starts all services in the correct order with one command:
+
+```bash
+npm run docker:up
+```
+
+Wait ~30 seconds for all services to be ready, then visit **http://localhost:3001**.
+
+To view logs:
+```bash
+npm run docker:logs
+```
+
+To stop:
+```bash
+npm run docker:down
+```
+
+### Option B: Manual (Terminal per Service)
+
+Use this when you need to observe individual service logs or test specific components.
+
+#### Terminal 1 — Hardhat Node (Blockchain)
 ```bash
 npm run node
 ```
-**Aguarde:** `Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/`
+Wait for: `Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/`
 
-### 2️⃣ Terminal 2: Deploy dos Contratos
+#### Terminal 2 — Deploy Contracts
 ```bash
 npm run deploy:local
 ```
 
-**Importante:** O deploy agora mostra as private keys corretas:
+The deploy script outputs the registered oracle addresses and their private keys:
 ```
 Oracle 1: 0x70997970C51812dc3A010C7d01b50e0d17dc79C8
   Private Key: 0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d
@@ -25,250 +49,223 @@ Oracle 3: 0x90F79bf6EB2c4f870365E785982E1f101E93b906
   Private Key: 0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6
 ```
 
-As private keys também são salvas em `deployments/localhost.json`.
+These keys are also saved to `deployments/localhost.json`. Copy them into your `.env` file before starting the oracle nodes.
 
-### 3️⃣ Terminal 3: Mock HEMS API
+#### Terminal 3 — Mock HEMS API
 ```bash
 npm run hems
 ```
-**Aguarde:** `Server running on port 3000`
+Wait for: `Server running on port 3000`
 
-### 4️⃣ Terminal 4: Oracle Node 1
+#### Terminal 4 — Oracle Node 1
 ```bash
 npm run oracle:1
 ```
 
-### 5️⃣ Terminal 5: Oracle Node 2 (opcional)
+#### Terminal 5 — Oracle Node 2
 ```bash
 npm run oracle:2
 ```
 
-### 6️⃣ Terminal 6: Oracle Node 3 (opcional)
+#### Terminal 6 — Oracle Node 3
 ```bash
 npm run oracle:3
 ```
 
-## 🧪 Coleção Postman - Testes Básicos
+#### Terminal 7 — Frontend Dashboard
+```bash
+npm run frontend:dev
+```
+Wait for: `Ready in Xms` — then visit **http://localhost:3001**
 
-### Health Checks
+---
+
+## Frontend Dashboard
+
+After startup, the dashboard is accessible at **http://localhost:3001**. The UI is available in English and Portuguese (use the language selector in the header).
+
+| Page | Path | What to Verify |
+|------|------|----------------|
+| Dashboard | `/dashboard` | Oracle count, active trades, recent activity feed |
+| Auctions | `/auctions` | List of Dutch auctions with price decay status |
+| Auction Detail | `/auctions/:id` | Price decay chart, bid functionality |
+| Marketplace | `/marketplace` | Open energy buy/sell offers |
+| Oracle Health | `/oracle-health` | Per-oracle reputation score and response rate |
+| Prosumer | `/prosumer` | Prosumer account balances and open positions |
+| Completed Trades | `/completed-trades` | Settled trade history |
+| History | `/history` | Full transaction history |
+
+A healthy system should show:
+- 3 active oracles on the Oracle Health page
+- No error banners in the dashboard
+- Auction list populated after a deploy (if test auctions were created)
+
+---
+
+## API Health Checks
+
+Use these endpoints to verify individual services are up.
 
 **Mock HEMS**
 ```
 GET http://localhost:3000/health
 ```
 
-**Oracle 1**
+**Oracle Nodes**
 ```
 GET http://localhost:4001/health
-```
-Deve retornar `"connected": true`
-
-**Oracle 2**
-```
 GET http://localhost:4002/health
-```
-
-**Oracle 3**
-```
 GET http://localhost:4003/health
 ```
+Expected: `"connected": true`
 
-### Testar Mock HEMS
+**Oracle Metrics**
+```
+GET http://localhost:4001/metrics
+GET http://localhost:4002/metrics
+GET http://localhost:4003/metrics
+```
 
-**Ler medidor METER001**
+---
+
+## Mock HEMS — Injecting Fault Behavior
+
+These admin endpoints allow simulating different failure scenarios for testing.
+
+**Read a meter**
 ```
 GET http://localhost:3000/smartmeter/METER001/reading
 ```
 
-**Status de todos os medidores**
+**Status of all meters**
 ```
 GET http://localhost:3000/admin/status
 ```
 
-### Simular Falhas
-
-**Tornar METER001 malicioso (10x valor)**
+**Simulate Byzantine fault (meter returns 10x inflated value)**
 ```
 POST http://localhost:3000/admin/malicious/METER001
 ```
 
-**Resetar para honesto**
+**Reset meter to honest**
 ```
 POST http://localhost:3000/admin/honest/METER001
 ```
 
-**Simular falha**
+**Simulate crash fault**
 ```
 POST http://localhost:3000/admin/fail/METER001
 ```
 
-**Recuperar medidor**
+**Recover meter**
 ```
 POST http://localhost:3000/admin/recover/METER001
 ```
 
-**Adicionar delay de 3 segundos**
+**Add latency (milliseconds)**
 ```
 POST http://localhost:3000/admin/delay/METER001/3000
 ```
 
-### Métricas dos Oracles
+---
 
-**Oracle 1 Metrics**
-```
-GET http://localhost:4001/metrics
-```
-
-**Oracle 2 Metrics**
-```
-GET http://localhost:4002/metrics
-```
-
-## 🔧 Testar Fluxo Completo via Hardhat Console
-
-Abra um novo terminal:
+## Full Flow Verification via Hardhat Console
 
 ```bash
 npx hardhat console --network localhost
 ```
 
-Execute no console:
-
 ```javascript
-// Carregar deployment info
 const deployment = require('./deployments/localhost.json');
 
-// Conectar ao contrato OracleAggregator
 const OracleAggregator = await ethers.getContractFactory("OracleAggregator");
 const contract = OracleAggregator.attach(deployment.contracts.OracleAggregator);
 
-// Verificar oracles registrados
+// Verify registered oracles
 const activeCount = await contract.getActiveOracleCount();
 console.log("Active oracles:", activeCount.toString());
 
-// Verificar info de cada oracle
+// Inspect oracle 1
 const oracle1Address = deployment.oracles.oracle1.address;
 const oracle1Info = await contract.getOracleInfo(oracle1Address);
-console.log("Oracle 1 Info:", {
-    address: oracle1Info.nodeAddress,
+console.log("Oracle 1:", {
     reputation: oracle1Info.reputation.toString(),
     isActive: oracle1Info.isActive,
     totalResponses: oracle1Info.totalResponses.toString()
 });
 
-// Fazer requisição de dados
-console.log("\nSending data request for METER001...");
+// Send a data request
 const tx = await contract.requestData("METER001");
 const receipt = await tx.wait();
-console.log("✓ Request sent! Transaction:", receipt.hash);
-
-// Pegar o requestId do evento
 const requestId = receipt.logs[0].args.requestId;
 console.log("Request ID:", requestId.toString());
 
-// Aguardar alguns segundos e verificar o resultado
-console.log("\nWait 5 seconds for oracles to respond...");
+// Wait for oracle responses
 await new Promise(resolve => setTimeout(resolve, 5000));
 
-// Verificar resultado
+// Check result
 const request = await contract.getRequest(requestId);
-console.log("\nRequest Status:", {
-    id: request.id.toString(),
-    meterId: request.meterId,
-    status: request.status, // 0=PENDING, 1=AGGREGATING, 2=COMPLETED
+console.log("Result:", {
+    status: request.status,       // 0=PENDING, 1=AGGREGATING, 2=COMPLETED
     responseCount: request.responseCount.toString(),
     aggregatedValue: request.aggregatedValue.toString()
 });
 ```
 
-## 🐛 Troubleshooting
+---
 
-### Oracles não conectam ao contrato
+## Troubleshooting
 
-**Problema:** `"connected": false` no health check
+### Oracles show `"connected": false`
 
-**Solução:**
-1. Verifique se o Hardhat node está rodando (Terminal 1)
-2. Confirme que o deploy foi executado (Terminal 2)
-3. Verifique se `deployments/localhost.json` existe e tem o endereço do contrato
+1. Confirm the Hardhat node is running on port 8545
+2. Confirm `npm run deploy:local` completed successfully
+3. Check that `deployments/localhost.json` exists and contains contract addresses
+4. Verify that `ORACLE_N_PRIVATE_KEY` values in `.env` match the keys printed by the deploy script
 
-### Oracles não respondem
+### Requests stay in PENDING (status: 0)
 
-**Problema:** Requests ficam com `status: 0` (PENDING)
+- **Oracles not registered:** Re-run `npm run deploy:local`
+- **Wrong private keys:** Keys in `.env` must match those registered during deploy
+- **HEMS offline:** Verify `npm run hems` is running and responding on port 3000
 
-**Possíveis causas:**
-1. **Oracles não registrados:** Execute o deploy novamente
-2. **Private keys incorretas:** Verifique se está usando as chaves corretas do `.env`
-3. **HEMS API offline:** Verifique se `npm run hems` está rodando
+### `Only registered oracles can submit responses` error
 
-**Como verificar:**
-```javascript
-// No Hardhat console
-const oracle1 = await contract.getOracleInfo("ENDEREÇO_DO_ORACLE_1");
-console.log("Is Active:", oracle1.isActive);
-```
+The private keys in `.env` do not match the oracle addresses registered on-chain. Re-deploy or update the keys to match the deploy output.
 
-### Erro ao submeter resposta
+### Frontend shows blank data or connection errors
 
-**Problema:** `Error: Only registered oracles can submit responses`
+- Confirm the Hardhat node is running and contracts are deployed
+- In Docker mode, check `NEXT_PUBLIC_RPC_URL` points to the correct host (`http://hardhat-node:8545` in Docker, `http://localhost:8545` for local dev)
+- Check browser console for RPC connection errors
 
-**Solução:** As private keys no `.env` devem corresponder aos endereços registrados no deploy.
+---
 
-Verifique no output do deploy:
-```
-Oracle 1: 0x70997970C51812dc3A010C7d01b50e0d17dc79C8
-  Private Key: 0x59c6995e...
-```
+## Success Indicators
 
-E confirme que `ORACLE_1_PRIVATE_KEY` no `.env` é a mesma.
+A correctly running system shows:
 
-## 📊 Verificando Logs
-
-### Logs do Hardhat (Terminal 1)
-Mostra todas as transações blockchain:
-- `registerOracle()`
-- `requestData()`
-- `submitResponse()`
-
-### Logs dos Oracles (Terminais 4-6)
-Mostram:
-- Conexão com blockchain
-- Eventos `DataRequested` recebidos
-- Fetching de dados do HEMS
-- Submissão de respostas
-
-### Logs do HEMS (Terminal 3)
-Mostram:
-- Requests recebidos dos oracles
-- Status dos medidores
-
-## ✅ Teste de Sucesso
-
-Um fluxo completo bem-sucedido deve mostrar:
-
-1. **No Hardhat Console:**
+1. **Hardhat console:**
    ```
    Request ID: 1
-   Request Status: { status: 2, responseCount: 2, aggregatedValue: "5023" }
+   Result: { status: 2, responseCount: 2, aggregatedValue: "5023" }
    ```
 
-2. **Nos Logs dos Oracles:**
+2. **Oracle logs:**
    ```
    [oracle-1] Received DataRequested event: requestId=1, meterId=METER001
    [oracle-1] Fetched value: 5023
    [oracle-1] Response submitted successfully
    ```
 
-3. **No Terminal do Hardhat:**
-   ```
-   eth_sendTransaction
-   Contract call: submitResponse
-   ```
+3. **Frontend dashboard:** 3 active oracles, no error banners, activity feed updating
 
-## 🎯 Próximos Passos
+---
 
-Depois de confirmar que o fluxo manual funciona:
+## Next Steps
 
-1. Execute os testes automatizados: `npm test`
-2. Execute os testes de cenários: `npm run test:scenarios`
-3. Execute testes de performance: `npm run perf:baseline`
+After confirming the manual flow works:
+
+1. Run automated tests: `npm test`
+2. Run scenario tests: `npm run test:scenarios`
+3. Run performance tests: `npm run k6:setup && npm run k6:all`

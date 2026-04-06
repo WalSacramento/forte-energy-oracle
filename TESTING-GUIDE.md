@@ -1,402 +1,242 @@
-# 🧪 Guia Completo de Testes - EAON
+# Testing Guide — EAON Fullstack
 
-Este guia explica como executar testes de performance no EAON e quando usar cada ferramenta.
-
----
-
-## 📊 k6 vs Hardhat: Quando Usar Cada Um?
-
-### ✅ Use **k6** quando precisar de:
-
-1. **Testes de Carga Concorrente**
-   - Simular múltiplos usuários simultâneos (VUs - Virtual Users)
-   - Testar throughput real (requisições/segundo)
-   - Validar escalabilidade (1 VU → 50 VUs)
-
-2. **Testes de Stress e Spike**
-   - Identificar limites do sistema
-   - Testar comportamento sob picos de carga
-   - Validar degradação gradual
-
-3. **Métricas de Performance em Tempo Real**
-   - Latência (p50, p95, p99)
-   - Throughput (reqs/s)
-   - Taxa de erro sob carga
-   - Tempo de consenso dos oracles
-
-4. **Testes End-to-End Realistas**
-   - Simula comportamento real de múltiplos clientes
-   - Testa integração completa: IoT → Oracles → Blockchain
-   - Valida SLAs (Service Level Agreements)
-
-### ✅ Use **Hardhat** quando precisar de:
-
-1. **Testes Unitários e de Integração**
-   - Validar lógica dos smart contracts
-   - Testar casos de borda
-   - Validar require() e revert()
-
-2. **Medição Precisa de Gas**
-   - Gas consumption por função
-   - Otimização de contratos
-   - Comparação antes/depois de mudanças
-
-3. **Testes de Cenários Específicos**
-   - Byzantine faults (oracles maliciosos)
-   - Crash faults (oracles offline)
-   - Sistema de reputação
-   - Detecção de outliers
-
-4. **Development e Debugging**
-   - Testes rápidos durante desenvolvimento
-   - Console.log nos contratos
-   - Stack traces detalhadas
-   - Breakpoints (com Hardhat Network)
+This guide explains when to use each testing tool (k6 vs Hardhat), how to run the full test suite, and what success criteria to expect.
 
 ---
 
-## 🎯 Métricas que Cada Ferramenta Fornece
+## k6 vs Hardhat: When to Use Each
 
-| Métrica | k6 | Hardhat | Notas |
-|---------|:--:|:-------:|-------|
-| **Application-Level** |
-| Error Rate | ✅ | ✅ | k6: sob carga; Hardhat: cenários específicos |
-| Accuracy | ✅ | ✅ | k6: validação de responses; Hardhat: assertions |
-| Availability | ✅ | ✅ | k6: uptime sob carga; Hardhat: testes unitários |
-| Outlier Detection | ✅ | ✅ | k6: taxa real; Hardhat: casos específicos |
-| **Network-Level** |
-| Latency (TTFB, p95, p99) | ✅ | ⚠️ | k6: real sob carga; Hardhat: timestamps sequenciais |
-| Throughput (reqs/s) | ✅ | ❌ | k6: VUs concorrentes; Hardhat: sempre sequencial |
-| Response Time | ✅ | ⚠️ | k6: real; Hardhat: timestamps locais |
-| Consensus Time | ✅ | ⚠️ | k6: real; Hardhat: muito rápido (local) |
-| **Computing-Level** |
-| Gas Consumption | ✅ | ✅✅ | k6: via Test Orchestrator; **Hardhat: mais preciso** |
-| Gas Optimization | ❌ | ✅ | Hardhat gas-reporter é melhor |
-| Scalability (VUs) | ✅✅ | ❌ | **k6 é único que testa** |
-| Concurrency | ✅ | ❌ | k6: real; Hardhat: não suporta |
+### Use k6 for:
 
-**Legenda:**
-- ✅✅ = Ferramenta ideal
-- ✅ = Suportado
-- ⚠️ = Suportado mas limitado
-- ❌ = Não suportado
+1. **Concurrent load tests** — simulate multiple simultaneous users (Virtual Users), measure throughput and scalability
+2. **Stress and spike tests** — identify system limits under increasing load
+3. **Real-time performance metrics** — latency (p50/p95/p99), throughput (req/s), consensus time
+4. **End-to-end realistic tests** — full integration flow: IoT → Oracles → Blockchain
+
+### Use Hardhat for:
+
+1. **Unit and integration tests** — validate smart contract logic, test edge cases, assert `require()` and `revert()` behavior
+2. **Precise gas measurement** — gas consumption per function, optimization comparisons
+3. **Fault scenario validation** — Byzantine faults, crash faults, reputation system, outlier detection
+4. **Development and debugging** — fast iteration, stack traces, console output from contracts
 
 ---
 
-## 🚀 Como Executar os Testes k6 (FLUXO COMPLETO)
+## Metrics Comparison
 
-### Pré-requisitos
-
-1. **k6 instalado:**
-   ```bash
-   # macOS
-   brew install k6
-
-   # Linux (Debian/Ubuntu)
-   sudo gpg -k
-   sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
-   echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
-   sudo apt-get update
-   sudo apt-get install k6
-
-   # Windows (Chocolatey)
-   choco install k6
-   ```
-
-2. **Docker e Docker Compose instalados**
-
-### Passo 1: Subir Infraestrutura
-
-```bash
-# Subir containers (Hardhat, HEMS, Oracles, Test Orchestrator)
-npm run k6:setup
-
-# Aguardar containers iniciarem (30s)
-# O script já faz isso automaticamente
-```
-
-### Passo 2: Deploy dos Contratos
-
-```bash
-npm run deploy:local
-```
-
-**IMPORTANTE:** Após o deploy, reinicie os oracles:
-
-```bash
-docker-compose -f docker-compose.k6.yml restart oracle-1 oracle-2 oracle-3
-```
-
-### Passo 3: Executar Testes k6
-
-#### A. Teste Baseline (Carga Normal - 20 VUs, 10 min)
-
-```bash
-npm run k6:baseline
-```
-
-**O que este teste faz:**
-- 20 Virtual Users (VUs) simultâneos
-- Cada VU executa ciclos de requisição por 10 minutos
-- **Fluxo completo testado:**
-  1. VU chama `POST /oracle/request-cycle`
-  2. Test Orchestrator chama `requestData()` no smart contract
-  3. Oracles escutam evento `DataRequested`
-  4. Oracles fetcham dados do HEMS API
-  5. Oracles submitam respostas assinadas
-  6. Smart contract agrega usando mediana
-  7. Detecta outliers (se houver)
-  8. Retorna resultado + métricas
-
-**Métricas coletadas:**
-- Application: Error Rate, Accuracy, Availability, Outlier Detection Rate
-- Network: Latency, Throughput, Response Time, Consensus Time
-- Computing: Gas Consumption (avg, p95), Scalability
-
-**Saída:**
-```
-results/local/k6/baseline-results.json    # Métricas completas
-results/local/k6/baseline-summary.txt     # Resumo taxonomia
-results/local/k6/baseline-report.html     # Relatório visual
-```
-
-#### B. Teste de Stress (Ramp 1→50 VUs)
-
-```bash
-npm run k6:stress
-```
-
-**O que este teste faz:**
-- Ramp-up gradual: 1 VU → 10 VUs → 30 VUs → 50 VUs
-- Identifica ponto de degradação
-- Testa comportamento sob carga crescente
-
-#### C. Teste de Cenários de Falha
-
-```bash
-npm run k6:faults
-```
-
-**O que este teste faz:**
-- **S2 - Crash Fault:** Simula 1 oracle offline
-- **S3 - Byzantine Fault:** Simula oracle malicioso (valores 10x)
-- **S5 - Network Latency:** Simula delay de 3s no oracle
-
-#### D. Todos os Testes
-
-```bash
-npm run k6:all
-```
-
-Executa baseline + stress + faults sequencialmente.
-
-### Passo 4: Analisar Resultados
-
-#### Ver Resumo no Terminal
-
-O teste já exibe resumo ao final:
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│  APPLICATION-LEVEL METRICS                                          │
-├─────────────────────────────────────────────────────────────────────┤
-│  Error Rate:              0.00%
-│  Accuracy:                100.00%
-│  Availability:            100.00%
-│  Outlier Detection Rate:  100.00%
-├─────────────────────────────────────────────────────────────────────┤
-│  NETWORK-LEVEL METRICS                                              │
-├─────────────────────────────────────────────────────────────────────┤
-│  Network Latency (TTFB):  Avg: 21.45ms, p95: 45.20ms
-│  Throughput:              45.2 reqs/s
-│  Response Time:           Avg: 1234.56ms, p95: 2100.00ms
-│  Consensus Time:          Avg: 890.12ms, p95: 1500.00ms
-├─────────────────────────────────────────────────────────────────────┤
-│  COMPUTING-LEVEL METRICS                                            │
-├─────────────────────────────────────────────────────────────────────┤
-│  Gas Consumption:         Avg: 675000, p95: 720000
-│  Gas Total:               67500000
-│  Scalability:             Tested up to 20 VUs
-│  Concurrency:             20 Virtual Users
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-#### Ver JSON Completo
-
-```bash
-cat results/local/k6/baseline-results.json | jq .metrics
-```
-
-#### Gerar Tabela LaTeX para Paper
-
-```bash
-npm run analysis:table
-```
-
-Gera `results/paper-table.tex` com tabelas acadêmicas formatadas.
+| Metric | k6 | Hardhat | Notes |
+|--------|:--:|:-------:|-------|
+| **Application-Level** | | |
+| Error Rate | Y | Y | k6: under load; Hardhat: specific scenarios |
+| Accuracy | Y | Y | k6: response validation; Hardhat: assertions |
+| Availability | Y | Y | k6: uptime under load; Hardhat: unit tests |
+| Outlier Detection | Y | Y | k6: real rate; Hardhat: specific cases |
+| **Network-Level** | | |
+| Latency (p95, p99) | Y | partial | k6: real under load; Hardhat: local timestamps only |
+| Throughput (req/s) | Y | N | k6 with VUs; Hardhat is always sequential |
+| Consensus Time | Y | partial | k6: real; Hardhat: very fast (local EVM) |
+| **Computing-Level** | | |
+| Gas Consumption | Y | best | k6: via Test Orchestrator; Hardhat: most precise |
+| Scalability (VUs) | best | N | k6 is the only tool that tests concurrency |
 
 ---
 
-## 🧪 Como Executar Testes Hardhat (Validação Lógica)
+## Running Hardhat Tests
 
-### Todos os Testes
+### All Tests
 
 ```bash
 npm test
 ```
 
-### Testes por Categoria
+### By Category
 
 ```bash
-# Unit tests (smart contracts)
+# Smart contract unit tests
 npm run test:unit
 
-# Integration tests (cross-component)
+# Cross-component integration tests
 npm run test:integration
 
-# Scenario tests (S1-S7: fault tolerance)
+# Fault tolerance scenario tests (S1–S7)
 npm run test:scenarios
-```
 
-### Testes com Coverage
-
-```bash
+# Coverage report (outputs to coverage/index.html)
 npm run test:coverage
 ```
 
-Gera relatório em `coverage/index.html`.
-
-### Teste Individual
+### Single Test File
 
 ```bash
-npx hardhat test test/scenarios/S6_StressTest.test.js
+npx hardhat test test/scenarios/S3_ByzantineFault.test.js
+npx hardhat test test/unit/EnergyAuction.test.js
 ```
+
+### Test Suites
+
+| Suite | Files | What It Tests |
+|-------|-------|---------------|
+| Unit | `OracleAggregator.test.js` | Oracle registration, ECDSA signing, aggregation, reputation |
+| Unit | `EnergyAuction.test.js` | Dutch auction creation, price decay, bidding, settlement |
+| Unit | `GridValidator.test.js` | Grid stability checks before trade execution |
+| Unit | `EnergyTrading.test.js` | P2P trade matching and execution |
+| Integration | `FullFlow.test.js` | End-to-end: request → oracle responses → aggregation → trade |
+| Integration | `AuctionFlow.test.js` | Full Dutch auction lifecycle with oracle price data |
+| S1 | `S1_Normal.test.js` | Normal operation with all 3 oracles healthy |
+| S2 | `S2_CrashFault.test.js` | 1 oracle offline — system still reaches consensus |
+| S3 | `S3_ByzantineFault.test.js` | Malicious oracle sending 10x values — outlier detected |
+| S4 | `S4_SubtleManipulation.test.js` | <10% deviation — below detection threshold |
+| S5 | `S5_NetworkLatency.test.js` | High-latency oracle — meets deadline or timeout |
+| S6 | `S6_StressTest.test.js` | Many concurrent requests |
+| S7 | `S7_ReputationRecovery.test.js` | Oracle recovers reputation after penalties |
+
+### Gas Report
+
+```bash
+npm run gas-report
+```
+
+Outputs gas usage per function for `EnergyAuction` (primary contract for auction operations).
 
 ---
 
-## 📈 Workflow Completo de Testes
+## Running k6 Performance Tests
 
-### Para Desenvolvimento
+### Prerequisites
 
+**Install k6:**
 ```bash
-# 1. Testes unitários rápidos
-npm run test:unit
+# macOS
+brew install k6
 
-# 2. Testes de integração
-npm run test:integration
+# Debian/Ubuntu
+sudo gpg --no-default-keyring \
+  --keyring /usr/share/keyrings/k6-archive-keyring.gpg \
+  --keyserver hkp://keyserver.ubuntu.com:80 \
+  --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | \
+  sudo tee /etc/apt/sources.list.d/k6.list
+sudo apt-get update && sudo apt-get install k6
 
-# 3. Verificar coverage
-npm run test:coverage
+# Windows
+choco install k6
 ```
 
-### Para Validação de Performance (Local)
+**Docker and Docker Compose** must be installed.
+
+### Step-by-Step Workflow
 
 ```bash
-# 1. Subir infra k6
+# 1. Start Docker stack (Hardhat + HEMS + Oracles + Test Orchestrator)
 npm run k6:setup
 
-# 2. Deploy
+# 2. Deploy contracts
 npm run deploy:local
 
-# 3. Reiniciar oracles
+# 3. Restart oracles to pick up deployed contract addresses
 docker-compose -f docker-compose.k6.yml restart oracle-1 oracle-2 oracle-3
 
-# 4. Rodar baseline
-npm run k6:baseline
+# 4. Run tests
+npm run k6:baseline         # 20 VUs, 10 minutes — normal operation
+npm run k6:stress           # Ramp 1 → 50 VUs — find the breaking point
+npm run k6:crash-fault      # Simulate 1 oracle offline
+npm run k6:byzantine-fault  # Simulate malicious oracle (10x values)
+npm run k6:scalability-5vus
+npm run k6:scalability-10vus
+npm run k6:scalability-20vus
 
-# 5. Analisar resultados
-cat results/local/k6/baseline-summary.txt
+# Run all sequentially
+npm run k6:all
 
-# 6. Gerar tabela LaTeX
-npm run analysis:table
-
-# 7. Teardown
+# 5. Tear down
 npm run k6:teardown
 ```
 
-**Atalho (tudo de uma vez):**
-```bash
-npm run perf:local
+### What the Baseline Test Measures
+
+The `k6:baseline` test runs 20 concurrent VUs through the full oracle cycle:
+
+1. VU calls `POST /oracle/request-cycle` on the Test Orchestrator
+2. Orchestrator calls `requestData()` on `OracleAggregator`
+3. Oracle nodes receive `DataRequested` event
+4. Each oracle fetches from Mock HEMS API
+5. Oracles submit ECDSA-signed responses
+6. Contract aggregates using median, detects outliers (>10% deviation)
+7. Response and metrics returned to k6
+
+**Output files** (saved to `results/local/k6/`, gitignored — generated locally):
+- `baseline-results.json` — full metrics
+- `baseline-summary.txt` — taxonomy summary
+- `baseline-report.html` — visual report
+
+### Expected Output
+
+```
+APPLICATION-LEVEL METRICS
+  Error Rate:              0.00%
+  Accuracy:                100.00%
+  Availability:            100.00%
+  Outlier Detection Rate:  100.00%
+
+NETWORK-LEVEL METRICS
+  Response Time:           Avg: ~1200ms, p95: <5000ms
+  Throughput:              > 10 req/min
+  Consensus Time:          Avg: ~900ms, p95: <2000ms
+
+COMPUTING-LEVEL METRICS
+  Gas Consumption:         Avg: < 700k, p95: < 750k
 ```
 
-### Para Validação em Testnet (Sepolia)
+---
+
+## Performance SLAs (ICBC 2026 Paper Targets)
+
+| Metric | Target | Test |
+|--------|--------|------|
+| Error Rate | < 1% | `k6:baseline` |
+| Availability (1 fault) | > 99% | `k6:crash-fault` |
+| Outlier detection (> 10%) | 100% | `k6:byzantine-fault` + `S3` |
+| Response time p95 | < 5s | `k6:baseline` |
+| Throughput | > 10 req/min | `k6:baseline` |
+| Consensus time p95 | < 2s | `k6:baseline` |
+| Gas per oracle cycle | < 700k | `k6:baseline` or Hardhat |
+| Scalability | Support 20+ VUs | `k6:stress` |
+
+---
+
+## Testnet (Sepolia)
 
 ```bash
-# 1. Configurar .env.testnet com suas chaves
-source .env.testnet
-
-# 2. Deploy na Sepolia
+# Deploy to Sepolia (configure .env with SEPOLIA_RPC and DEPLOYER_PRIVATE_KEY first)
 npm run testnet:deploy
 
-# 3. Executar teste de performance
+# Verify contracts on Etherscan
+npm run testnet:verify
+
+# Run performance test against testnet
 npm run testnet:test
 
-# 4. Analisar resultados
-cat results/testnet/sepolia/performance-results.json
-
-# 5. Comparar local vs testnet
+# Consolidate local + testnet results
 npm run analysis:consolidate
 ```
 
----
-
-## 🎯 Targets de Performance (SLAs)
-
-Baseado no paper "Scalable Computational Solution for Agroclimatic Data Tracking":
-
-| Métrica | Target | Como Medir |
-|---------|--------|------------|
-| **Application** |
-| Error Rate | < 1% | k6 baseline |
-| Availability | > 99% | k6 baseline |
-| Outlier Detection | > 95% | k6 faults (S3) |
-| **Network** |
-| Response Time p95 | < 5s | k6 baseline |
-| Throughput | > 10 req/min | k6 baseline |
-| Consensus Time p95 | < 2s | k6 baseline |
-| **Computing** |
-| Gas avg | < 700k | k6 baseline ou Hardhat |
-| Scalability | Suportar 20+ VUs | k6 stress |
+See [DOCKER-SEPOLIA-SETUP.md](DOCKER-SEPOLIA-SETUP.md) and [GUIA-DEPLOY-SEPOLIA.md](GUIA-DEPLOY-SEPOLIA.md) for full setup instructions.
 
 ---
 
-## 🔍 Debugging
-
-### Ver logs em tempo real
+## Debugging
 
 ```bash
-# Todos os serviços
+# Stream logs from all services
 docker-compose -f docker-compose.k6.yml logs -f
 
-# Apenas oracles
+# Only oracle logs
 docker-compose -f docker-compose.k6.yml logs -f oracle-1 oracle-2 oracle-3
 
-# Apenas Test Orchestrator
-docker-compose -f docker-compose.k6.yml logs -f test-orchestrator
-
-# Apenas Hardhat (blockchain)
-docker-compose -f docker-compose.k6.yml logs -f hardhat
-```
-
-### Verificar saúde dos serviços
-
-```bash
+# Health check all services
 curl http://localhost:3000/health   # HEMS API
 curl http://localhost:4000/health   # Test Orchestrator
 curl http://localhost:4001/health   # Oracle 1
 curl http://localhost:4002/health   # Oracle 2
 curl http://localhost:4003/health   # Oracle 3
 ```
-
----
-
-## 📚 Referências
-
-- [k6 Documentation](https://k6.io/docs/)
-- [Hardhat Testing](https://hardhat.org/hardhat-runner/docs/guides/test-contracts)
-- [Agroclimatic Paper](https://example.com) - Metodologia de taxonomia
-- [EAON Architecture](./docs/architecture.md)
-
----
-
-**Última atualização:** 2026-01-04
