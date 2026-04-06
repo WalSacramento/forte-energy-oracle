@@ -1,11 +1,11 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { StatCard } from "@/components/dashboard/StatCard";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { OracleHealthMini } from "@/components/dashboard/OracleHealthMini";
-import { useEnergyTrading } from "@/hooks/useEnergyTrading";
+import { StatCard } from "@/components/dashboard/StatCard";
 import { useEnergyAuction } from "@/hooks/useEnergyAuction";
+import { useEnergyTrading } from "@/hooks/useEnergyTrading";
 
 export function DashboardPage() {
   const t = useTranslations("dashboard");
@@ -14,43 +14,41 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-3xl" style={{ color: "var(--cyan)" }}>
+      <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
         {t("title")}
-      </h1>
+      </p>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label={t("activeOffers")}
           value={activeOffers?.length ?? 0}
           unit={t("offers")}
-          color="amber"
+          sparkData={[1, 2, 2, 3, activeOffers?.length ?? 0]}
+          accentColor="amber"
         />
         <StatCard
           label={t("activeAuctions")}
           value={activeAuctions?.length ?? 0}
           unit={t("auctionsUnit")}
-          color="cyan"
+          sparkData={[1, 1, 2, 2, activeAuctions?.length ?? 0]}
+          accentColor="cyan"
         />
         <StatCard
           label={t("oracleNodes")}
           value={3}
           unit={t("nodes")}
-          color="emerald"
+          accentColor="emerald"
         />
         <StatCard
           label={t("network")}
           value="Hardhat"
           unit={t("local")}
-          color="cyan"
+          accentColor="gray"
         />
       </div>
 
-      {/* Activity + Oracle mini */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2">
-          <ActivityFeed />
-        </div>
+      <div className="grid gap-4 xl:grid-cols-[2fr_1fr]">
+        <ActivityFeed />
         <OracleHealthMini />
       </div>
     </div>

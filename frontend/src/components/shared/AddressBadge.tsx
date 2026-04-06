@@ -1,8 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { Copy, Check } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { truncateAddress } from "@/lib/formatters";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 interface AddressBadgeProps {
   address: string;
@@ -20,23 +23,17 @@ export function AddressBadge({ address, chars = 4 }: AddressBadgeProps) {
   };
 
   return (
-    <span
-      className="inline-flex items-center gap-1.5 font-data text-xs px-2 py-0.5 rounded border cursor-default"
-      style={{
-        color: "var(--text-secondary)",
-        borderColor: "var(--bg-border)",
-        background: "var(--bg-panel)",
-      }}
-    >
-      {truncateAddress(address, chars)}
-      <button
+    <Badge variant="outline" className="gap-1 pl-2 font-mono">
+      <span>{truncateAddress(address, chars)}</span>
+      <Button
+        variant="ghost"
+        size="icon-xs"
+        className="size-5 rounded-full"
         onClick={handleCopy}
-        title={copied ? t("copied") : t("copyAddress")}
-        className="opacity-60 hover:opacity-100 transition-opacity"
-        style={{ color: copied ? "var(--emerald)" : "inherit" }}
+        aria-label={copied ? t("copied") : t("copyAddress")}
       >
-        {copied ? "✓" : "⎘"}
-      </button>
-    </span>
+        {copied ? <Check /> : <Copy />}
+      </Button>
+    </Badge>
   );
 }

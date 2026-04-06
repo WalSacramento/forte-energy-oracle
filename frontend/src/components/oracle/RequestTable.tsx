@@ -1,9 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { useReadContract, useWatchContractEvent } from "wagmi";
+import { Fragment, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useReadContract, useWatchContractEvent } from "wagmi";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { OracleAggregatorABI, CONTRACT_ADDRESSES } from "@/lib/contracts";
+import { formatTimestamp } from "@/lib/formatters";
 import { hardhatLocal } from "@/lib/wagmi-config";
 import { OracleVotePanel } from "./OracleVotePanel";
 
@@ -13,9 +23,8 @@ interface RequestRow {
   status: number;
   aggregatedValue: bigint;
   responseCount: number;
+  timestamp: number;
 }
-
-const STATUS_COLORS = ["var(--amber)", "var(--cyan)", "var(--emerald)", "var(--red)"];
 
 function RequestDetailRow({ requestId }: { requestId: bigint }) {
   const { data: responses } = useReadContract({
@@ -48,9 +57,14 @@ function RequestDetailRow({ requestId }: { requestId: bigint }) {
 
 export function RequestTable() {
   const t = useTranslations("requestTable");
-  const STATUS_LABELS = [t("statusPending"), t("statusAggregating"), t("statusCompleted"), t("statusFailed")];
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [requests, setRequests] = useState<RequestRow[]>([]);
+
+  const statusBadge = (status: number) => {
+    if (status === 2) return <Badge>{t("statusCompleted")}</Badge>;
+    if (status === 3) return <Badge variant="destructive">{t("statusFailed")}</Badge>;
+    return <Badge variant="secondary">{status === 1 ? t("statusAggregating") : t("statusPending")}</Badge>;
+  };
 
   useWatchContractEvent({
     address: CONTRACT_ADDRESSES.oracleAggregator,
@@ -66,11 +80,13 @@ export function RequestTable() {
           status: 0,
           aggregatedValue: 0n,
           responseCount: 0,
+          timestamp: Math.floor(Date.now() / 1000),
         };
-        setRequests((prev) => {
-          const exists = prev.find((r) => r.requestId === row.requestId);
-          if (exists) return prev;
-          return [row, ...prev].slice(0, 50);
+
+        setRequests((current) => {
+          const exists = current.find((item) => item.requestId === row.requestId);
+          if (exists) return current;
+          return [row, ...current].slice(0, 50);
         });
       });
     },
@@ -84,16 +100,16 @@ export function RequestTable() {
     onLogs: (logs) => {
       logs.forEach((log) => {
         const args = (log as { args?: Record<string, unknown> }).args ?? {};
-        setRequests((prev) =>
-          prev.map((r) =>
-            r.requestId === args.requestId
+        setRequests((current) =>
+          current.map((item) =>
+            item.requestId === args.requestId
               ? {
-                  ...r,
+                  ...item,
                   status: 2,
                   aggregatedValue: (args.aggregatedValue as bigint) ?? 0n,
                   responseCount: Number(args.responseCount ?? 0),
                 }
-              : r
+              : item
           )
         );
       });
@@ -102,72 +118,59 @@ export function RequestTable() {
 
   if (requests.length === 0) {
     return (
-      <div className="panel p-6">
-        <p className="font-data text-xs text-center" style={{ color: "var(--text-muted)" }}>
-          {t("noRequests")}
-        </p>
+      <div className="rounded-xl border bg-card p-6 text-sm text-muted-foreground">
+        {t("noRequests")}
       </div>
     );
   }
 
   return (
-    <div className="panel overflow-hidden">
-      <table className="w-full font-data text-xs">
-        <thead>
-          <tr style={{ borderBottom: "1px solid var(--bg-border)", color: "var(--text-muted)" }}>
-            <th className="text-left p-3">{t("colRequestId")}</th>
-            <th className="text-left p-3">{t("colMeter")}</th>
-            <th className="text-center p-3">{t("colStatus")}</th>
-            <th className="text-right p-3">{t("colAggregated")}</th>
-            <th className="text-center p-3">{t("colResponses")}</th>
-            <th className="text-right p-3"></th>
-          </tr>
-        </thead>
-        <tbody>
+    <div className="rounded-xl border bg-card">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>{t("colRequestId")}</TableHead>
+            <TableHead>{t("colMeter")}</TableHead>
+            <TableHead>{t("colResponses")}</TableHead>
+            <TableHead>{t("colStatus")}</TableHead>
+            <TableHead className="text-right">{t("colAggregated")}</TableHead>
+            <TableHead className="text-right">Timestamp</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {requests.map((row) => {
             const key = row.requestId.toString();
             const isExpanded = expandedId === key;
+
             return (
-              <>
-                <tr
-                  key={key}
-                  style={{
-                    borderBottom: "1px solid var(--bg-border)",
-                    cursor: "pointer",
-                    background: isExpanded ? "rgba(0,229,255,0.04)" : "transparent",
-                  }}
+              <Fragment key={key}>
+                <TableRow
+                  className="cursor-pointer"
                   onClick={() => setExpandedId(isExpanded ? null : key)}
                 >
-                  <td className="p-3" style={{ color: "var(--text-secondary)" }}>
-                    #{key}
-                  </td>
-                  <td className="p-3">{row.meterId}</td>
-                  <td className="p-3 text-center">
-                    <span style={{ color: STATUS_COLORS[row.status] }}>
-                      {STATUS_LABELS[row.status]}
-                    </span>
-                  </td>
-                  <td className="p-3 text-right" style={{ color: "var(--cyan)" }}>
+                  <TableCell className="font-mono">#{key}</TableCell>
+                  <TableCell>{row.meterId}</TableCell>
+                  <TableCell>{row.responseCount}</TableCell>
+                  <TableCell>{statusBadge(row.status)}</TableCell>
+                  <TableCell className="text-right font-mono">
                     {row.aggregatedValue > 0n ? row.aggregatedValue.toString() : "—"}
-                  </td>
-                  <td className="p-3 text-center">{row.responseCount}</td>
-                  <td className="p-3 text-right" style={{ color: "var(--text-muted)" }}>
-                    {isExpanded ? "▲" : "▼"}
-                  </td>
-                </tr>
-
-                {isExpanded && (
-                  <tr key={`${key}-detail`} style={{ borderBottom: "1px solid var(--bg-border)" }}>
-                    <td colSpan={6} style={{ background: "var(--bg-base)" }}>
+                  </TableCell>
+                  <TableCell className="text-right text-muted-foreground">
+                    {formatTimestamp(row.timestamp)}
+                  </TableCell>
+                </TableRow>
+                {isExpanded ? (
+                  <TableRow>
+                    <TableCell colSpan={6}>
                       <RequestDetailRow requestId={row.requestId} />
-                    </td>
-                  </tr>
-                )}
-              </>
+                    </TableCell>
+                  </TableRow>
+                ) : null}
+              </Fragment>
             );
           })}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

@@ -2,108 +2,225 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ============ Design System Variables ============ */
-:root {
-  --bg-base:   #080d12;
-  --bg-panel:  #0d1520;
-  --bg-border: #1a2535;
-
-  --cyan:      #00e5ff;
-  --cyan-dim:  #00869a;
-  --amber:     #ffa500;
-  --amber-dim: #7a5000;
-  --emerald:   #00e676;
-  --red:       #ff1744;
-
-  --text-primary:   #e8f4f8;
-  --text-secondary: #8fa8b8;
-  --text-muted:     #4a6070;
-
-  /* Font variables injected by next/font */
-  --font-bebas: "Bebas Neue";
-  --font-jetbrains: "JetBrains Mono";
-  --font-space: "Space Mono";
-}
-
-/* ============ Base Reset ============ */
-*, *::before, *::after {
-  box-sizing: border-box;
-}
-
-html, body {
-  height: 100%;
-  background-color: var(--bg-base);
-  color: var(--text-primary);
-  font-family: var(--font-jetbrains), "Courier New", monospace;
-  -webkit-font-smoothing: antialiased;
-}
-
-/* ============ Dot Grid Background ============ */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background-image: radial-gradient(circle, var(--bg-border) 1px, transparent 1px);
-  background-size: 24px 24px;
-  pointer-events: none;
-  opacity: 0.4;
-  z-index: 0;
-}
-
-/* ============ Scanline Overlay ============ */
-body::after {
-  content: "";
-  position: fixed;
-  left: 0;
-  top: -100%;
-  width: 100%;
-  height: 4px;
-  background: linear-gradient(
-    to bottom,
-    transparent,
-    rgba(0, 229, 255, 0.06),
-    transparent
-  );
-  animation: scanline 10s linear infinite;
-  pointer-events: none;
-  z-index: 1;
-}
-
-@keyframes scanline {
-  0%   { top: -4px; }
-  100% { top: 100vh; }
-}
-
-/* ============ Panel / Card Base ============ */
-.panel {
-  background: var(--bg-panel);
-  border: 1px solid var(--bg-border);
-  border-radius: 4px;
-}
-
-/* ============ Typography Utilities ============ */
-.font-display {
-  font-family: var(--font-bebas), sans-serif;
-  letter-spacing: 0.05em;
-}
-
-.font-data {
-  font-family: var(--font-space), monospace;
-  font-size: 0.75rem;
-}
-
-/* ============ Pulsing Status Dot ============ */
+/* ─── Keyframe animations ─────────────────────────── */
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.5; transform: scale(0.85); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 8px 0 hsl(38 92% 52% / 0.3); }
+  50% { box-shadow: 0 0 20px 2px hsl(38 92% 52% / 0.55); }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .dot-pulse {
   animation: pulse-dot 2s ease-in-out infinite;
 }
 
-/* ============ Scrollbar ============ */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-base); }
-::-webkit-scrollbar-thumb { background: var(--bg-border); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--cyan-dim); }
+.glow-amber {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.25s ease-out both;
+}
+
+/* ─── Base layer: design tokens ───────────────────── */
+@layer base {
+  :root {
+    /* Backgrounds */
+    --background:              222 35% 5%;
+    --foreground:              213 31% 91%;
+
+    /* Cards */
+    --card:                    220 30% 8%;
+    --card-foreground:         213 31% 91%;
+
+    /* Popovers */
+    --popover:                 220 30% 8%;
+    --popover-foreground:      213 31% 91%;
+
+    /* Primary = Amber (electricity / energy) */
+    --primary:                 38 92% 52%;
+    --primary-foreground:      222 35% 5%;
+
+    /* Secondary = Cyan (oracle / blockchain data) */
+    --secondary:               192 90% 48%;
+    --secondary-foreground:    222 35% 5%;
+
+    /* Muted */
+    --muted:                   222 25% 13%;
+    --muted-foreground:        217 20% 55%;
+
+    /* Accent (hover surfaces) */
+    --accent:                  220 25% 11%;
+    --accent-foreground:       213 31% 91%;
+
+    /* Destructive */
+    --destructive:             0 72% 51%;
+    --destructive-foreground:  213 31% 91%;
+
+    /* Borders / inputs */
+    --border:                  220 25% 14%;
+    --input:                   220 25% 14%;
+    --ring:                    38 92% 52%;
+
+    /* Charts: amber, cyan, emerald, violet, rose */
+    --chart-1:                 38 92% 52%;
+    --chart-2:                 192 90% 48%;
+    --chart-3:                 158 64% 48%;
+    --chart-4:                 262 83% 68%;
+    --chart-5:                 346 87% 60%;
+
+    /* Border radius — tighter for terminal feel */
+    --radius:                  0.5rem;
+
+    /* Sidebar — slightly darker than card */
+    --sidebar:                 220 30% 6%;
+    --sidebar-foreground:      217 20% 65%;
+    --sidebar-primary:         38 92% 52%;
+    --sidebar-primary-foreground: 222 35% 5%;
+    --sidebar-accent:          220 25% 11%;
+    --sidebar-accent-foreground: 213 31% 91%;
+    --sidebar-border:          220 25% 10%;
+    --sidebar-ring:            38 92% 52%;
+
+    /* Market semantic colors */
+    --market-up:               158 64% 48%;
+    --market-down:             0 72% 51%;
+  }
+
+  /* Light mode — readable amber on light bg */
+  .light {
+    --background:              220 20% 97%;
+    --foreground:              222 35% 10%;
+    --card:                    0 0% 100%;
+    --card-foreground:         222 35% 10%;
+    --popover:                 0 0% 100%;
+    --popover-foreground:      222 35% 10%;
+    --primary:                 38 92% 40%;
+    --primary-foreground:      0 0% 100%;
+    --secondary:               192 90% 38%;
+    --secondary-foreground:    0 0% 100%;
+    --muted:                   220 15% 93%;
+    --muted-foreground:        220 10% 45%;
+    --accent:                  220 15% 93%;
+    --accent-foreground:       222 35% 10%;
+    --destructive:             0 72% 51%;
+    --destructive-foreground:  0 0% 100%;
+    --border:                  220 15% 88%;
+    --input:                   220 15% 88%;
+    --ring:                    38 92% 40%;
+    --chart-1:                 38 92% 45%;
+    --chart-2:                 192 90% 38%;
+    --chart-3:                 158 64% 40%;
+    --chart-4:                 262 83% 58%;
+    --chart-5:                 346 87% 50%;
+    --sidebar:                 220 20% 97%;
+    --sidebar-foreground:      220 10% 45%;
+    --sidebar-primary:         38 92% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent:          220 15% 93%;
+    --sidebar-accent-foreground: 222 35% 10%;
+    --sidebar-border:          220 15% 88%;
+    --sidebar-ring:            38 92% 40%;
+    --market-up:               158 64% 36%;
+    --market-down:             0 72% 48%;
+  }
+
+  /* Dark mirrors :root */
+  .dark {
+    --background:              222 35% 5%;
+    --foreground:              213 31% 91%;
+    --card:                    220 30% 8%;
+    --card-foreground:         213 31% 91%;
+    --popover:                 220 30% 8%;
+    --popover-foreground:      213 31% 91%;
+    --primary:                 38 92% 52%;
+    --primary-foreground:      222 35% 5%;
+    --secondary:               192 90% 48%;
+    --secondary-foreground:    222 35% 5%;
+    --muted:                   222 25% 13%;
+    --muted-foreground:        217 20% 55%;
+    --accent:                  220 25% 11%;
+    --accent-foreground:       213 31% 91%;
+    --destructive:             0 72% 51%;
+    --destructive-foreground:  213 31% 91%;
+    --border:                  220 25% 14%;
+    --input:                   220 25% 14%;
+    --ring:                    38 92% 52%;
+    --chart-1:                 38 92% 52%;
+    --chart-2:                 192 90% 48%;
+    --chart-3:                 158 64% 48%;
+    --chart-4:                 262 83% 68%;
+    --chart-5:                 346 87% 60%;
+    --radius:                  0.5rem;
+    --sidebar:                 220 30% 6%;
+    --sidebar-foreground:      217 20% 65%;
+    --sidebar-primary:         38 92% 52%;
+    --sidebar-primary-foreground: 222 35% 5%;
+    --sidebar-accent:          220 25% 11%;
+    --sidebar-accent-foreground: 213 31% 91%;
+    --sidebar-border:          220 25% 10%;
+    --sidebar-ring:            38 92% 52%;
+    --market-up:               158 64% 48%;
+    --market-down:             0 72% 51%;
+  }
+
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply h-full scroll-smooth font-sans;
+  }
+
+  body {
+    @apply min-h-screen bg-background text-foreground antialiased;
+  }
+}
+
+/* ─── Utility classes ─────────────────────────────── */
+@layer utilities {
+  /* Market color text */
+  .text-market-up   { color: hsl(var(--market-up)); }
+  .text-market-down { color: hsl(var(--market-down)); }
+
+  /* Dot-grid background texture — subtle page grain */
+  .dot-grid-bg {
+    background-image: radial-gradient(
+      circle,
+      hsl(var(--border) / 0.6) 1px,
+      transparent 1px
+    );
+    background-size: 24px 24px;
+  }
+
+  /* Left-border accent variants for cards */
+  .card-accent-amber  { border-left: 2px solid hsl(38 92% 52%); }
+  .card-accent-cyan   { border-left: 2px solid hsl(192 90% 48%); }
+  .card-accent-emerald { border-left: 2px solid hsl(158 64% 48%); }
+  .card-accent-red    { border-left: 2px solid hsl(0 72% 51%); }
+  .card-accent-gray   { border-left: 2px solid hsl(var(--border)); }
+
+  /* Top amber glow for online oracle node cards */
+  .oracle-online-glow {
+    box-shadow:
+      0 -2px 0 0 hsl(38 92% 52% / 0.7),
+      0 0 24px 0 hsl(38 92% 52% / 0.1);
+  }
+}
+
+/* ─── Scrollbar styling ───────────────────────────── */
+::-webkit-scrollbar        { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: hsl(var(--background)); }
+::-webkit-scrollbar-thumb  {
+  background: hsl(var(--border));
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }

@@ -7,6 +7,7 @@ const nextConfig = {
   reactStrictMode: true,
   output: "standalone",
   optimizeFonts: false,
+  transpilePackages: ["geist"],
 };
 
 module.exports = withNextIntl(nextConfig);

@@ -1,28 +1,30 @@
 "use client";
 
 import { useState } from "react";
-import { useWatchContractEvent } from "wagmi";
 import { useTranslations } from "next-intl";
-import { EnergyTradingABI, EnergyAuctionABI, CONTRACT_ADDRESSES } from "@/lib/contracts";
-import { hardhatLocal } from "@/lib/wagmi-config";
+import { useWatchContractEvent } from "wagmi";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { EnergyAuctionABI, EnergyTradingABI, CONTRACT_ADDRESSES } from "@/lib/contracts";
 import { formatTimestamp } from "@/lib/formatters";
+import { hardhatLocal } from "@/lib/wagmi-config";
 
 interface FeedEvent {
   id: string;
-  type: string;
   description: string;
-  color: string;
   timestamp: number;
+  borderClass: string;
+  dotClass: string;
 }
 
 export function ActivityFeed() {
   const t = useTranslations("activityFeed");
   const [events, setEvents] = useState<FeedEvent[]>([]);
 
-  const addEvent = (e: Omit<FeedEvent, "id">) => {
-    setEvents((prev) => [
-      { ...e, id: `${Date.now()}-${Math.random()}` },
-      ...prev.slice(0, 49),
+  const addEvent = (event: Omit<FeedEvent, "id">) => {
+    setEvents((current) => [
+      { ...event, id: `${Date.now()}-${Math.random()}` },
+      ...current.slice(0, 49),
     ]);
   };
 
@@ -35,10 +37,13 @@ export function ActivityFeed() {
       logs.forEach((log) => {
         const args = (log as { args?: Record<string, unknown> }).args ?? {};
         addEvent({
-          type: "OFFER_CREATED",
-          description: t("offerCreated", { id: String(args.offerId ?? "?"), amount: String(args.amount ?? "?") }),
-          color: "var(--amber)",
+          description: t("offerCreated", {
+            id: String(args.offerId ?? "?"),
+            amount: String(args.amount ?? "?"),
+          }),
           timestamp: Date.now(),
+          borderClass: "border-l-primary/60",
+          dotClass: "bg-primary",
         });
       });
     },
@@ -53,10 +58,13 @@ export function ActivityFeed() {
       logs.forEach((log) => {
         const args = (log as { args?: Record<string, unknown> }).args ?? {};
         addEvent({
-          type: "TRADE",
-          description: t("tradeExecuted", { id: String(args.tradeId ?? "?"), amount: String(args.amount ?? "?") }),
-          color: "var(--emerald)",
+          description: t("tradeExecuted", {
+            id: String(args.tradeId ?? "?"),
+            amount: String(args.amount ?? "?"),
+          }),
           timestamp: Date.now(),
+          borderClass: "border-l-market-up/60",
+          dotClass: "bg-market-up",
         });
       });
     },
@@ -71,10 +79,13 @@ export function ActivityFeed() {
       logs.forEach((log) => {
         const args = (log as { args?: Record<string, unknown> }).args ?? {};
         addEvent({
-          type: "AUCTION",
-          description: t("auctionCreated", { id: String(args.auctionId ?? "?"), amount: String(args.energyAmount ?? "?") }),
-          color: "var(--cyan)",
+          description: t("auctionCreated", {
+            id: String(args.auctionId ?? "?"),
+            amount: String(args.energyAmount ?? "?"),
+          }),
           timestamp: Date.now(),
+          borderClass: "border-l-secondary/60",
+          dotClass: "bg-secondary",
         });
       });
     },
@@ -89,48 +100,49 @@ export function ActivityFeed() {
       logs.forEach((log) => {
         const args = (log as { args?: Record<string, unknown> }).args ?? {};
         addEvent({
-          type: "BID",
           description: t("bidAccepted", { id: String(args.auctionId ?? "?") }),
-          color: "var(--cyan)",
           timestamp: Date.now(),
+          borderClass: "border-l-chart-4/60",
+          dotClass: "bg-chart-4",
         });
       });
     },
   });
 
   return (
-    <div className="panel p-4 h-64 overflow-y-auto">
-      <p className="font-data text-xs mb-3 uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
-        {t("liveActivity")}
-      </p>
-
-      {events.length === 0 ? (
-        <p className="font-data text-xs" style={{ color: "var(--text-muted)" }}>
-          {t("waiting")}
-        </p>
-      ) : (
-        <ul className="space-y-2">
-          {events.map((e) => (
-            <li key={e.id} className="flex items-start gap-2">
-              <span
-                className="w-1.5 h-1.5 rounded-full mt-1 shrink-0"
-                style={{ background: e.color }}
-              />
-              <div className="flex-1 min-w-0">
-                <span
-                  className="font-data text-xs block truncate"
-                  style={{ color: "var(--text-primary)" }}
+    <Card className="h-full card-accent-cyan">
+      <CardHeader className="pb-3">
+        <CardTitle className="font-display text-sm font-semibold uppercase tracking-wider">
+          {t("liveActivity")}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <ScrollArea className="h-64 pr-3">
+          {events.length === 0 ? (
+            <div className="flex h-full flex-col items-center justify-center gap-2 py-8">
+              <span className="size-1.5 rounded-full bg-muted-foreground/40 dot-pulse" />
+              <p className="font-mono text-xs text-muted-foreground">{t("waiting")}</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-0.5">
+              {events.map((event) => (
+                <div
+                  key={event.id}
+                  className={`flex items-center justify-between gap-3 border-l-2 py-2 pl-3 animate-fade-in-up ${event.borderClass}`}
                 >
-                  {e.description}
-                </span>
-                <span className="font-data text-xs" style={{ color: "var(--text-muted)" }}>
-                  {formatTimestamp(Math.floor(e.timestamp / 1000))}
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className={`size-1.5 shrink-0 rounded-full ${event.dotClass}`} />
+                    <p className="truncate text-xs text-foreground/80">{event.description}</p>
+                  </div>
+                  <span className="shrink-0 font-mono text-[10px] text-muted-foreground/60">
+                    {formatTimestamp(Math.floor(event.timestamp / 1000))}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </ScrollArea>
+      </CardContent>
+    </Card>
   );
 }

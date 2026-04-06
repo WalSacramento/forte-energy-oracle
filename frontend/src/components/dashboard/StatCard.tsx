@@ -1,66 +1,74 @@
 "use client";
 
-import { ResponsiveContainer, AreaChart, Area } from "recharts";
+import { Area, AreaChart, ResponsiveContainer } from "recharts";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { LiveNumber } from "@/components/shared/LiveNumber";
+import { cn } from "@/lib/utils";
 
 interface StatCardProps {
   label: string;
   value: number | string;
   unit?: string;
-  color?: "cyan" | "amber" | "emerald" | "red";
   sparkData?: number[];
+  accentColor?: "amber" | "cyan" | "emerald" | "gray";
 }
 
-const COLOR_VAR: Record<string, string> = {
-  cyan:    "var(--cyan)",
-  amber:   "var(--amber)",
-  emerald: "var(--emerald)",
-  red:     "var(--red)",
+const accentMap = {
+  amber:   "card-accent-amber",
+  cyan:    "card-accent-cyan",
+  emerald: "card-accent-emerald",
+  gray:    "card-accent-gray",
 };
 
-export function StatCard({ label, value, unit, color = "cyan", sparkData }: StatCardProps) {
-  const c = COLOR_VAR[color];
-  const chartData = (sparkData ?? [value, value]).map((v, i) => ({ i, v: Number(v) }));
+const chartColorMap = {
+  amber:   "hsl(38 92% 52%)",
+  cyan:    "hsl(192 90% 48%)",
+  emerald: "hsl(158 64% 48%)",
+  gray:    "hsl(var(--muted-foreground))",
+};
+
+export function StatCard({ label, value, unit, sparkData, accentColor = "amber" }: StatCardProps) {
+  const chartData = (sparkData ?? [Number(value) || 0]).map((item, index) => ({
+    index,
+    value: Number(item),
+  }));
+
+  const chartColor = chartColorMap[accentColor];
 
   return (
-    <div
-      className="panel p-4 flex flex-col gap-2"
-      style={{ borderColor: `${c}33` }}
-    >
-      <div className="flex items-end justify-between gap-2">
-        <span className="font-display text-5xl leading-none" style={{ color: c }}>
+    <Card className={cn("h-full overflow-hidden", accentMap[accentColor])}>
+      <CardHeader className="pb-2 pt-5">
+        <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+          {label}
+        </p>
+        <p className="font-mono text-4xl font-bold leading-none tracking-tight">
           <LiveNumber value={value} />
-        </span>
+        </p>
+        {unit && (
+          <p className="font-mono text-xs text-muted-foreground">{unit}</p>
+        )}
+      </CardHeader>
 
-        {sparkData && (
-          <div style={{ width: 50, height: 30 }}>
+      {sparkData && (
+        <CardContent className="px-0 pb-0 pt-2">
+          <div className="h-12 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
+              <AreaChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                 <Area
                   type="monotone"
-                  dataKey="v"
-                  stroke={c}
-                  fill={`${c}22`}
-                  strokeWidth={1}
+                  dataKey="value"
+                  stroke={chartColor}
+                  fill={chartColor}
+                  fillOpacity={0.15}
+                  strokeWidth={1.5}
                   dot={false}
                   isAnimationActive={false}
                 />
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        )}
-      </div>
-
-      <div className="flex items-baseline gap-1.5">
-        <span className="font-data text-xs uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
-          {label}
-        </span>
-        {unit && (
-          <span className="font-data text-xs" style={{ color: "var(--text-muted)" }}>
-            {unit}
-          </span>
-        )}
-      </div>
-    </div>
+        </CardContent>
+      )}
+    </Card>
   );
 }

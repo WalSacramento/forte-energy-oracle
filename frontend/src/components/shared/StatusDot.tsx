@@ -1,10 +1,12 @@
+import { cn } from "@/lib/utils";
+
 type StatusVariant = "emerald" | "amber" | "red" | "cyan";
 
 const COLOR_MAP: Record<StatusVariant, string> = {
-  emerald: "var(--emerald)",
-  amber:   "var(--amber)",
-  red:     "var(--red)",
-  cyan:    "var(--cyan)",
+  emerald: "bg-market-up",
+  amber:   "bg-primary",
+  red:     "bg-destructive",
+  cyan:    "bg-secondary",
 };
 
 interface StatusDotProps {
@@ -14,27 +16,25 @@ interface StatusDotProps {
   label?: string;
 }
 
-export function StatusDot({ variant = "emerald", pulse = true, size = 8, label }: StatusDotProps) {
-  const color = COLOR_MAP[variant];
+export function StatusDot({
+  variant = "emerald",
+  pulse = true,
+  size = 8,
+  label,
+}: StatusDotProps) {
   return (
-    <span className="inline-flex items-center gap-1.5">
+    <span className="inline-flex items-center gap-2">
       <span
-        className={pulse ? "dot-pulse" : ""}
-        style={{
-          display: "inline-block",
-          width: size,
-          height: size,
-          borderRadius: "50%",
-          background: color,
-          boxShadow: `0 0 6px ${color}`,
-          flexShrink: 0,
-        }}
+        className={cn(
+          "inline-block rounded-full",
+          COLOR_MAP[variant],
+          pulse && "dot-pulse"
+        )}
+        style={{ width: size, height: size }}
       />
-      {label && (
-        <span className="font-data text-xs" style={{ color: "var(--text-secondary)" }}>
-          {label}
-        </span>
-      )}
+      {label ? (
+        <span className="font-mono text-xs text-muted-foreground">{label}</span>
+      ) : null}
     </span>
   );
 }

@@ -4,6 +4,8 @@ import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { locales, type Locale } from "@/lib/locale";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const LOCALE_LABELS: Record<Locale, string> = {
   en: "EN",
@@ -17,6 +19,7 @@ export function LanguageSwitcher() {
 
   const handleSwitch = (next: Locale) => {
     if (next === locale || isPending) return;
+
     document.cookie = `NEXT_LOCALE=${next}; path=/; SameSite=Lax`;
     startTransition(() => {
       router.refresh();
@@ -24,27 +27,21 @@ export function LanguageSwitcher() {
   };
 
   return (
-    <div
-      className="flex items-center gap-0.5 font-data text-xs border rounded px-1"
-      style={{ borderColor: "var(--bg-border)" }}
-    >
-      {locales.map((l, i) => (
-        <span key={l} className="flex items-center">
-          <button
-            onClick={() => handleSwitch(l)}
-            disabled={isPending}
-            className="px-1 py-0.5 rounded transition-colors disabled:opacity-50"
-            style={{
-              color: l === locale ? "var(--cyan)" : "var(--text-muted)",
-              fontWeight: l === locale ? 700 : 400,
-            }}
-          >
-            {LOCALE_LABELS[l]}
-          </button>
-          {i < locales.length - 1 && (
-            <span style={{ color: "var(--bg-border)" }}>|</span>
+    <div className="flex items-center rounded-lg border bg-background p-1">
+      {locales.map((item) => (
+        <Button
+          key={item}
+          variant="ghost"
+          size="sm"
+          disabled={isPending}
+          onClick={() => handleSwitch(item)}
+          className={cn(
+            "h-7 rounded-md px-2 text-xs font-medium",
+            item === locale && "bg-muted text-foreground"
           )}
-        </span>
+        >
+          {LOCALE_LABELS[item]}
+        </Button>
       ))}
     </div>
   );

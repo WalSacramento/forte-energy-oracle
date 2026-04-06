@@ -1,8 +1,15 @@
 "use client";
 
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  ReferenceLine, ReferenceDot, ResponsiveContainer,
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ReferenceDot,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
 import { useTranslations } from "next-intl";
 
@@ -25,67 +32,73 @@ export function PriceDecayChart({
 }: PriceDecayChartProps) {
   const t = useTranslations("priceDecayChart");
   const durationS = Number(endTime - startTime);
-  const POINTS = 60;
+  const points = 60;
 
-  const data = Array.from({ length: POINTS + 1 }, (_, i) => {
-    const elapsed = (i / POINTS) * durationS;
+  const data = Array.from({ length: points + 1 }, (_, index) => {
+    const elapsed = (index / points) * durationS;
     const decay = BigInt(Math.floor(elapsed)) * priceDecayRate;
     const price = decay >= startPrice - minPrice ? minPrice : startPrice - decay;
+
     return {
-      t: Math.round(elapsed / 60), // minutes
+      minute: Math.round(elapsed / 60),
       price: Number(price) / 1e18,
     };
   });
 
   const nowS = Math.floor(Date.now() / 1000);
   const elapsedS = Math.max(0, nowS - Number(startTime));
-  const currentT = Math.min(elapsedS / 60, durationS / 60);
+  const currentMinute = Math.min(elapsedS / 60, durationS / 60);
   const currentPriceEth = Number(currentPrice) / 1e18;
   const minPriceEth = Number(minPrice) / 1e18;
 
   return (
-    <div style={{ height: 220 }}>
+    <div className="h-64 w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--bg-border)" />
+        <AreaChart data={data} margin={{ top: 12, right: 12, bottom: 8, left: 0 }}>
+          <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="4 4" />
           <XAxis
-            dataKey="t"
-            tick={{ fill: "var(--text-muted)", fontSize: 10, fontFamily: "var(--font-space)" }}
-            label={{ value: t("minutes"), position: "insideBottomRight", fill: "var(--text-muted)", fontSize: 10 }}
+            dataKey="minute"
+            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+            label={{
+              value: t("minutes"),
+              position: "insideBottomRight",
+              fill: "hsl(var(--muted-foreground))",
+              fontSize: 12,
+            }}
           />
           <YAxis
-            tick={{ fill: "var(--text-muted)", fontSize: 10, fontFamily: "var(--font-space)" }}
-            tickFormatter={(v: number) => v.toFixed(4)}
+            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+            tickFormatter={(value: number) => value.toFixed(4)}
           />
           <Tooltip
             contentStyle={{
-              background: "var(--bg-panel)",
-              border: "1px solid var(--bg-border)",
-              fontFamily: "var(--font-space)",
-              fontSize: 10,
+              background: "hsl(var(--popover))",
+              border: "1px solid hsl(var(--border))",
+              borderRadius: 12,
             }}
-            labelStyle={{ color: "var(--text-muted)" }}
-            itemStyle={{ color: "var(--cyan)" }}
-            formatter={(v: number) => [`${v.toFixed(6)} ETH`, t("pricePerWh")]}
+            formatter={(value) => [`${Number(value ?? 0).toFixed(6)} ETH`, t("pricePerWh")]}
           />
-          {/* Min price reference line */}
-          <ReferenceLine y={minPriceEth} stroke="var(--red)" strokeDasharray="4 4" />
+          <ReferenceLine
+            y={minPriceEth}
+            stroke="hsl(var(--chart-2))"
+            strokeDasharray="4 4"
+          />
           <Area
-            type="linear"
+            type="monotone"
             dataKey="price"
-            stroke="var(--cyan)"
-            fill="rgba(0,229,255,0.15)"
+            stroke="hsl(var(--chart-1))"
+            fill="hsl(var(--chart-1))"
+            fillOpacity={0.18}
             strokeWidth={2}
             dot={false}
             isAnimationActive={false}
           />
-          {/* Animated dot at current position */}
           <ReferenceDot
-            x={Math.round(currentT)}
+            x={Math.round(currentMinute)}
             y={currentPriceEth}
             r={5}
-            fill="var(--cyan)"
-            stroke="var(--bg-base)"
+            fill="hsl(var(--chart-2))"
+            stroke="hsl(var(--background))"
             strokeWidth={2}
           />
         </AreaChart>

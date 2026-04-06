@@ -1,19 +1,19 @@
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 
 export function PageLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-screen overflow-hidden relative z-10">
+    <SidebarProvider defaultOpen>
       <Sidebar />
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <SidebarInset className="min-h-svh">
         <TopBar />
-        <main
-          className="flex-1 overflow-y-auto p-6"
-          style={{ background: "var(--bg-base)" }}
-        >
-          {children}
+        <main className="dot-grid-bg flex-1 p-4 sm:p-6 lg:p-8">
+          <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
+            {children}
+          </div>
         </main>
-      </div>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

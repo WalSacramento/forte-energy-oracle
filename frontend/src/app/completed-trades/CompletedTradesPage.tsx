@@ -1,163 +1,175 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useMemo } from "react";
 import { useAccount } from "wagmi";
 import { useTranslations } from "next-intl";
+import { ReceiptText } from "lucide-react";
+import { AddressBadge } from "@/components/shared/AddressBadge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useCompletedTrades } from "@/hooks/useCompletedTrades";
-import { formatEth, formatTimestamp, formatWh, truncateAddress } from "@/lib/formatters";
-import type { CompletedTradeFilter } from "@/lib/completed-trades";
+import { formatEth, formatTimestamp, formatWh } from "@/lib/formatters";
+import type { CompletedTradeFilter, CompletedTradeView } from "@/lib/completed-trades";
+
+function TradesTable({
+  trades,
+  t,
+}: {
+  trades: CompletedTradeView[];
+  t: ReturnType<typeof useTranslations<"completedTrades">>;
+}) {
+  if (trades.length === 0) {
+    return (
+      <div className="flex flex-col items-center gap-2 py-10 text-center">
+        <p className="font-mono text-xs text-muted-foreground">{t("noTrades")}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-lg border border-border overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-muted/20 hover:bg-muted/20">
+            <TableHead className="font-mono text-[10px] uppercase tracking-wider">{t("colType")}</TableHead>
+            <TableHead className="font-mono text-[10px] uppercase tracking-wider">{t("colRef")}</TableHead>
+            <TableHead className="font-mono text-[10px] uppercase tracking-wider">{t("colMeter")}</TableHead>
+            <TableHead className="text-right font-mono text-[10px] uppercase tracking-wider">{t("colEnergy")}</TableHead>
+            <TableHead className="text-right font-mono text-[10px] uppercase tracking-wider">{t("colTotal")}</TableHead>
+            <TableHead className="font-mono text-[10px] uppercase tracking-wider">{t("colBuyer")}</TableHead>
+            <TableHead className="font-mono text-[10px] uppercase tracking-wider">{t("colSeller")}</TableHead>
+            <TableHead className="font-mono text-[10px] uppercase tracking-wider">{t("colTime")}</TableHead>
+            <TableHead className="font-mono text-[10px] uppercase tracking-wider">{t("colTx")}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody className="divide-y divide-border">
+          {trades.map((trade) => (
+            <TableRow key={trade.id} className="hover:bg-muted/10">
+              <TableCell>
+                <span
+                  className={
+                    trade.source === "auction"
+                      ? "rounded px-1.5 py-0.5 font-mono text-[10px] font-medium bg-primary/10 text-primary"
+                      : "rounded px-1.5 py-0.5 font-mono text-[10px] font-medium bg-secondary/10 text-secondary"
+                  }
+                >
+                  {trade.source === "auction" ? t("typeAuction") : t("typeOffer")}
+                </span>
+              </TableCell>
+              <TableCell className="font-mono text-xs text-muted-foreground">#{trade.referenceId}</TableCell>
+              <TableCell className="font-mono text-xs">{trade.meterId || "—"}</TableCell>
+              <TableCell className="text-right font-mono text-xs">
+                {formatWh(BigInt(trade.energyAmount))}
+              </TableCell>
+              <TableCell className="text-right font-mono text-xs font-semibold text-market-up">
+                {formatEth(BigInt(trade.totalPriceWei))}
+              </TableCell>
+              <TableCell><AddressBadge address={trade.buyer} /></TableCell>
+              <TableCell><AddressBadge address={trade.seller} /></TableCell>
+              <TableCell className="font-mono text-xs text-muted-foreground">
+                {formatTimestamp(trade.timestamp)}
+              </TableCell>
+              <TableCell><AddressBadge address={trade.txHash} chars={6} /></TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
 
 export function CompletedTradesPage() {
   const t = useTranslations("completedTrades");
   const { address, isConnected } = useAccount();
-  const [filter, setFilter] = useState<CompletedTradeFilter>("all");
   const { data: trades = [], isLoading } = useCompletedTrades();
 
-  const filteredTrades = useMemo(() => {
-    if (!address || filter === "all") {
-      return trades;
-    }
+  const groupedTrades = useMemo(() => {
+    const normalizedAddress = address?.toLowerCase();
 
-    const normalizedAddress = address.toLowerCase();
+    const byFilter = (filter: CompletedTradeFilter) => {
+      if (!normalizedAddress || filter === "all") return trades;
+      if (filter === "purchases") {
+        return trades.filter((trade) => trade.buyer.toLowerCase() === normalizedAddress);
+      }
+      return trades.filter((trade) => trade.seller.toLowerCase() === normalizedAddress);
+    };
 
-    if (filter === "purchases") {
-      return trades.filter((trade) => trade.buyer.toLowerCase() === normalizedAddress);
-    }
-
-    return trades.filter((trade) => trade.seller.toLowerCase() === normalizedAddress);
-  }, [address, filter, trades]);
-
-  const filterStyle = (active: boolean) => ({
-    color: active ? "var(--cyan)" : "var(--text-muted)",
-    borderColor: active ? "var(--cyan)" : "var(--bg-border)",
-    background: active ? "rgba(0,229,255,0.08)" : "transparent",
-  });
+    return {
+      all: byFilter("all"),
+      purchases: byFilter("purchases"),
+      sales: byFilter("sales"),
+    };
+  }, [address, trades]);
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="font-display text-3xl" style={{ color: "var(--emerald)" }}>
-            {t("title")}
-          </h1>
-          <p className="font-data text-sm" style={{ color: "var(--text-muted)" }}>
-            {t("subtitle")}
-          </p>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <ReceiptText className="size-5 text-primary" />
+            <h1 className="font-display text-2xl font-bold tracking-tight">{t("title")}</h1>
+          </div>
+          <p className="font-mono text-xs text-muted-foreground">{t("subtitle")}</p>
         </div>
-
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={() => setFilter("all")}
-            className="font-data text-xs px-3 py-1.5 rounded border transition-colors"
-            style={filterStyle(filter === "all")}
-          >
-            {t("allTrades")}
-          </button>
-          <button
-            onClick={() => setFilter("purchases")}
-            disabled={!isConnected}
-            className="font-data text-xs px-3 py-1.5 rounded border transition-colors disabled:opacity-40"
-            style={filterStyle(filter === "purchases")}
-          >
-            {t("myPurchases")}
-          </button>
-          <button
-            onClick={() => setFilter("sales")}
-            disabled={!isConnected}
-            className="font-data text-xs px-3 py-1.5 rounded border transition-colors disabled:opacity-40"
-            style={filterStyle(filter === "sales")}
-          >
-            {t("mySales")}
-          </button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" render={<Link href="/marketplace" />}>
+            {t("goToMarketplace")}
+          </Button>
+          <Button variant="outline" size="sm" render={<Link href="/auctions" />}>
+            {t("goToAuctions")}
+          </Button>
         </div>
       </div>
 
       {!isConnected && (
-        <div className="panel p-4">
-          <p className="font-data text-xs" style={{ color: "var(--text-muted)" }}>
-            {t("connectWalletHint")}
-          </p>
+        <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 font-mono text-xs text-muted-foreground">
+          {t("connectWalletHint")}
         </div>
       )}
 
       {isLoading ? (
-        <div className="panel p-6">
-          <p className="font-data text-sm" style={{ color: "var(--text-muted)" }}>
-            {t("loading")}
-          </p>
-        </div>
-      ) : filteredTrades.length === 0 ? (
-        <div className="panel p-6 space-y-3">
-          <p className="font-data text-sm" style={{ color: "var(--text-muted)" }}>
-            {t("noTrades")}
-          </p>
-          <div className="flex items-center gap-3 flex-wrap">
-            <Link
-              href="/marketplace"
-              className="font-data text-xs px-3 py-1.5 rounded border transition-colors"
-              style={{
-                color: "var(--amber)",
-                borderColor: "var(--amber)",
-                background: "rgba(245,158,11,0.08)",
-              }}
-            >
-              {t("goToMarketplace")}
-            </Link>
-            <Link
-              href="/auctions"
-              className="font-data text-xs px-3 py-1.5 rounded border transition-colors"
-              style={{
-                color: "var(--cyan)",
-                borderColor: "var(--cyan)",
-                background: "rgba(0,229,255,0.08)",
-              }}
-            >
-              {t("goToAuctions")}
-            </Link>
-          </div>
+        <div className="flex flex-col items-center gap-2 py-10">
+          <span className="size-1.5 rounded-full bg-muted-foreground/40 dot-pulse" />
+          <p className="font-mono text-xs text-muted-foreground">{t("loading")}</p>
         </div>
       ) : (
-        <div className="panel overflow-x-auto">
-          <table className="w-full font-data text-xs">
-            <thead>
-              <tr style={{ borderBottom: "1px solid var(--bg-border)", color: "var(--text-muted)" }}>
-                <th className="text-left p-3">{t("colType")}</th>
-                <th className="text-left p-3">{t("colRef")}</th>
-                <th className="text-left p-3">{t("colMeter")}</th>
-                <th className="text-right p-3">{t("colEnergy")}</th>
-                <th className="text-right p-3">{t("colTotal")}</th>
-                <th className="text-left p-3">{t("colBuyer")}</th>
-                <th className="text-left p-3">{t("colSeller")}</th>
-                <th className="text-left p-3">{t("colTime")}</th>
-                <th className="text-left p-3">{t("colTx")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTrades.map((trade) => (
-                <tr key={trade.id} style={{ borderBottom: "1px solid var(--bg-border)" }}>
-                  <td className="p-3">
-                    <span style={{ color: trade.source === "auction" ? "var(--cyan)" : "var(--amber)" }}>
-                      {trade.source === "auction" ? t("typeAuction") : t("typeOffer")}
-                    </span>
-                  </td>
-                  <td className="p-3">#{trade.referenceId}</td>
-                  <td className="p-3">{trade.meterId || "—"}</td>
-                  <td className="p-3 text-right">{formatWh(BigInt(trade.energyAmount))}</td>
-                  <td className="p-3 text-right" style={{ color: "var(--emerald)" }}>
-                    {formatEth(BigInt(trade.totalPriceWei))}
-                  </td>
-                  <td className="p-3">{truncateAddress(trade.buyer)}</td>
-                  <td className="p-3">{truncateAddress(trade.seller)}</td>
-                  <td className="p-3">{formatTimestamp(trade.timestamp)}</td>
-                  <td className="p-3">
-                    <span title={trade.txHash}>{truncateAddress(trade.txHash, 6)}</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Tabs defaultValue="all" className="space-y-4">
+          <TabsList className="border-b border-border bg-transparent p-0">
+            {(["all", "purchases", "sales"] as const).map((tab) => (
+              <TabsTrigger
+                key={tab}
+                value={tab}
+                className="rounded-none border-b-2 border-transparent px-4 pb-2 font-mono text-xs uppercase tracking-wider data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent"
+              >
+                {tab === "all" ? t("allTrades") : tab === "purchases" ? t("myPurchases") : t("mySales")}
+                {tab !== "all" && (
+                  <span className="ml-1.5 font-mono text-[10px] text-muted-foreground">
+                    ({groupedTrades[tab].length})
+                  </span>
+                )}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          <TabsContent value="all">
+            <TradesTable trades={groupedTrades.all} t={t} />
+          </TabsContent>
+          <TabsContent value="purchases">
+            <TradesTable trades={groupedTrades.purchases} t={t} />
+          </TabsContent>
+          <TabsContent value="sales">
+            <TradesTable trades={groupedTrades.sales} t={t} />
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );

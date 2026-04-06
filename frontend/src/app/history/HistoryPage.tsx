@@ -1,12 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
+import { History } from "lucide-react";
+import { Area, AreaChart, Bar, BarChart, Line, LineChart, ResponsiveContainer } from "recharts";
+import { Button } from "@/components/ui/button";
 import {
-  AreaChart, Area, BarChart, Bar, LineChart, Line,
-  ResponsiveContainer,
-} from "recharts";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { formatTimestamp } from "@/lib/formatters";
 
 interface TradeEvent {
@@ -20,176 +34,226 @@ interface TradeEvent {
 
 const PAGE_SIZE = 20;
 
+const CHART_COLORS = {
+  volume:  "hsl(38 92% 52%)",   /* amber */
+  gas:     "hsl(192 90% 48%)",  /* cyan */
+  size:    "hsl(158 64% 48%)",  /* emerald */
+};
+
 export function HistoryPage() {
   const t = useTranslations("history");
   const [events, setEvents] = useState<TradeEvent[]>([]);
   const [page, setPage] = useState(0);
+  const [filter, setFilter] = useState<"all" | "trade" | "auction">("all");
 
   useEffect(() => {
     fetch("/api/events")
-      .then((r) => r.json())
+      .then((response) => response.json())
       .then((data) => setEvents(data))
       .catch(() => setEvents([]));
   }, []);
 
-  const paginated = events.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
-  const totalPages = Math.ceil(events.length / PAGE_SIZE);
+  const filteredEvents = useMemo(
+    () => (filter === "all" ? events : events.filter((event) => event.type === filter)),
+    [events, filter]
+  );
 
-  // Build chart data: group by hour
-  const chartData = events.slice(-50).map((e, i) => ({
-    t: i,
-    volume: Number(e.amount),
-    gas: e.gasUsed ?? 0,
-    size: Number(e.amount),
+  const paginated = filteredEvents.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(filteredEvents.length / PAGE_SIZE));
+  const chartData = filteredEvents.slice(-50).map((event, index) => ({
+    time: index,
+    volume: Number(event.amount),
+    gas: event.gasUsed ?? 0,
+    size: Number(event.amount),
   }));
 
   const handleExportCSV = () => {
     const header = "type,timestamp,amount,price,gasUsed,txHash";
-    const rows = events.map((e) =>
-      [e.type, e.timestamp, e.amount, e.price, e.gasUsed ?? "", e.txHash ?? ""].join(",")
+    const rows = filteredEvents.map((event) =>
+      [event.type, event.timestamp, event.amount, event.price, event.gasUsed ?? "", event.txHash ?? ""].join(",")
     );
     const blob = new Blob([[header, ...rows].join("\n")], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "eaon-history.csv";
-    a.click();
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "eaon-history.csv";
+    anchor.click();
     URL.revokeObjectURL(url);
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-3xl" style={{ color: "var(--text-primary)" }}>
-          {t("title")}
-        </h1>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/completed-trades"
-            className="font-data text-xs px-3 py-1.5 rounded border transition-colors"
-            style={{
-              color: "var(--cyan)",
-              borderColor: "var(--cyan)",
-              background: "rgba(0,229,255,0.08)",
+      {/* Page header */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <History className="size-5 text-primary" />
+            <h1 className="font-display text-2xl font-bold tracking-tight">{t("title")}</h1>
+          </div>
+          <p className="font-mono text-xs text-muted-foreground">
+            Inspect historical market executions and export filtered datasets.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Select
+            value={filter}
+            onValueChange={(value) => {
+              if (value) setFilter(value as "all" | "trade" | "auction");
             }}
           >
+            <SelectTrigger className="h-8 w-[140px] font-mono text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All events</SelectItem>
+              <SelectItem value="trade">Trades</SelectItem>
+              <SelectItem value="auction">Auctions</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button variant="outline" size="sm" render={<Link href="/completed-trades" />}>
             {t("completedTrades")}
-          </Link>
-          <button
-            onClick={handleExportCSV}
-            className="font-data text-xs px-3 py-1.5 rounded border transition-colors"
-            style={{
-              color: "var(--emerald)",
-              borderColor: "var(--emerald)",
-              background: "rgba(0,230,118,0.07)",
-            }}
-          >
-            {t("exportCsv")}
-          </button>
+          </Button>
+          <Button size="sm" onClick={handleExportCSV}>{t("exportCsv")}</Button>
         </div>
       </div>
 
       {/* Charts */}
       {chartData.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="panel p-4">
-            <p className="font-data text-xs mb-2" style={{ color: "var(--text-muted)" }}>{t("volume")}</p>
+        <div className="grid gap-4 md:grid-cols-3">
+          {/* Volume */}
+          <div className="rounded-lg border border-border bg-card p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="size-2 rounded-full" style={{ backgroundColor: CHART_COLORS.volume }} />
+              <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                {t("volume")}
+              </p>
+            </div>
             <ResponsiveContainer width="100%" height={100}>
-              <AreaChart data={chartData}>
-                <Area type="monotone" dataKey="volume" stroke="var(--amber)" fill="rgba(255,165,0,0.15)" />
+              <AreaChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                <Area
+                  type="monotone"
+                  dataKey="volume"
+                  stroke={CHART_COLORS.volume}
+                  fill={CHART_COLORS.volume}
+                  fillOpacity={0.15}
+                  strokeWidth={1.5}
+                  dot={false}
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>
-          <div className="panel p-4">
-            <p className="font-data text-xs mb-2" style={{ color: "var(--text-muted)" }}>{t("gasUsed")}</p>
+
+          {/* Gas Used */}
+          <div className="rounded-lg border border-border bg-card p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="size-2 rounded-full" style={{ backgroundColor: CHART_COLORS.gas }} />
+              <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                {t("gasUsed")}
+              </p>
+            </div>
             <ResponsiveContainer width="100%" height={100}>
-              <BarChart data={chartData}>
-                <Bar dataKey="gas" fill="var(--cyan)" />
+              <BarChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                <Bar dataKey="gas" fill={CHART_COLORS.gas} radius={[2, 2, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <div className="panel p-4">
-            <p className="font-data text-xs mb-2" style={{ color: "var(--text-muted)" }}>{t("avgSize")}</p>
+
+          {/* Avg Size */}
+          <div className="rounded-lg border border-border bg-card p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="size-2 rounded-full" style={{ backgroundColor: CHART_COLORS.size }} />
+              <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                {t("avgSize")}
+              </p>
+            </div>
             <ResponsiveContainer width="100%" height={100}>
-              <LineChart data={chartData}>
-                <Line type="monotone" dataKey="size" stroke="var(--emerald)" dot={false} />
+              <LineChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                <Line
+                  type="monotone"
+                  dataKey="size"
+                  stroke={CHART_COLORS.size}
+                  strokeWidth={1.5}
+                  dot={false}
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
       )}
 
-      {/* Table */}
-      <div className="panel overflow-x-auto">
-        <table className="w-full font-data text-xs">
-          <thead>
-            <tr style={{ borderBottom: "1px solid var(--bg-border)", color: "var(--text-muted)" }}>
-              <th className="text-left p-3">{t("colType")}</th>
-              <th className="text-left p-3">{t("colTime")}</th>
-              <th className="text-right p-3">{t("colAmount")}</th>
-              <th className="text-right p-3">{t("colPrice")}</th>
-              <th className="text-right p-3">{t("colGas")}</th>
-            </tr>
-          </thead>
-          <tbody>
+      {/* Event table */}
+      <div className="rounded-lg border border-border overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted/20 hover:bg-muted/20">
+              <TableHead className="font-mono text-[10px] uppercase tracking-wider">{t("colType")}</TableHead>
+              <TableHead className="font-mono text-[10px] uppercase tracking-wider">{t("colTime")}</TableHead>
+              <TableHead className="text-right font-mono text-[10px] uppercase tracking-wider">{t("colAmount")}</TableHead>
+              <TableHead className="text-right font-mono text-[10px] uppercase tracking-wider">{t("colPrice")}</TableHead>
+              <TableHead className="text-right font-mono text-[10px] uppercase tracking-wider">{t("colGas")}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody className="divide-y divide-border">
             {paginated.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="p-6 text-center" style={{ color: "var(--text-muted)" }}>
+              <TableRow>
+                <TableCell colSpan={5} className="h-20 text-center font-mono text-xs text-muted-foreground">
                   {t("noHistory")}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
-              paginated.map((e, i) => (
-                <tr
-                  key={i}
-                  style={{ borderBottom: "1px solid var(--bg-border)" }}
-                >
-                  <td className="p-3">
+              paginated.map((event, index) => (
+                <TableRow key={`${event.timestamp}-${index}`} className="hover:bg-muted/10">
+                  <TableCell>
                     <span
-                      style={{
-                        color: e.type === "auction" ? "var(--cyan)" : "var(--amber)",
-                        textTransform: "uppercase",
-                      }}
+                      className={
+                        event.type === "auction"
+                          ? "rounded px-1.5 py-0.5 font-mono text-[10px] font-medium bg-primary/10 text-primary"
+                          : "rounded px-1.5 py-0.5 font-mono text-[10px] font-medium bg-secondary/10 text-secondary"
+                      }
                     >
-                      {e.type}
+                      {event.type}
                     </span>
-                  </td>
-                  <td className="p-3" style={{ color: "var(--text-secondary)" }}>
-                    {formatTimestamp(e.timestamp)}
-                  </td>
-                  <td className="p-3 text-right">{e.amount} Wh</td>
-                  <td className="p-3 text-right" style={{ color: "var(--cyan)" }}>{e.price}</td>
-                  <td className="p-3 text-right" style={{ color: "var(--text-muted)" }}>
-                    {e.gasUsed ?? "-"}
-                  </td>
-                </tr>
+                  </TableCell>
+                  <TableCell className="font-mono text-xs text-muted-foreground">
+                    {formatTimestamp(event.timestamp)}
+                  </TableCell>
+                  <TableCell className="text-right font-mono text-xs">{event.amount} Wh</TableCell>
+                  <TableCell className="text-right font-mono text-xs">{event.price}</TableCell>
+                  <TableCell className="text-right font-mono text-xs text-muted-foreground">
+                    {event.gasUsed ?? "—"}
+                  </TableCell>
+                </TableRow>
               ))
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-4 p-4 border-t" style={{ borderColor: "var(--bg-border)" }}>
-            <button
-              disabled={page === 0}
-              onClick={() => setPage((p) => p - 1)}
-              className="font-data text-xs px-2 py-1 rounded border disabled:opacity-30"
-              style={{ borderColor: "var(--bg-border)", color: "var(--text-secondary)" }}
-            >
-              {t("prev")}
-            </button>
-            <span className="font-data text-xs" style={{ color: "var(--text-muted)" }}>
+        {filteredEvents.length > PAGE_SIZE && (
+          <div className="flex items-center justify-between border-t border-border px-4 py-3">
+            <span className="font-mono text-xs text-muted-foreground">
               {page + 1} / {totalPages}
             </span>
-            <button
-              disabled={page >= totalPages - 1}
-              onClick={() => setPage((p) => p + 1)}
-              className="font-data text-xs px-2 py-1 rounded border disabled:opacity-30"
-              style={{ borderColor: "var(--bg-border)", color: "var(--text-secondary)" }}
-            >
-              {t("next")}
-            </button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 font-mono text-xs"
+                disabled={page === 0}
+                onClick={() => setPage((current) => current - 1)}
+              >
+                {t("prev")}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 font-mono text-xs"
+                disabled={page >= totalPages - 1}
+                onClick={() => setPage((current) => current + 1)}
+              >
+                {t("next")}
+              </Button>
+            </div>
           </div>
         )}
       </div>

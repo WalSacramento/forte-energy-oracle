@@ -1,25 +1,37 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useReadContract } from "wagmi";
-import { useTranslations } from "next-intl";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { EnergyTradingABI, CONTRACT_ADDRESSES } from "@/lib/contracts";
-import { hardhatLocal } from "@/lib/wagmi-config";
+import { dismissTxToast, showTxError, showTxLoading, showTxSuccess } from "@/components/shared/TxToast";
 import { formatEth, formatWh } from "@/lib/formatters";
-import { useEnergyTrading } from "@/hooks/useEnergyTrading";
-import { TxToast, type TxState } from "@/components/shared/TxToast";
 import { waitForLocalTransaction } from "@/lib/transactions";
+import { useEnergyTrading } from "@/hooks/useEnergyTrading";
+import { hardhatLocal } from "@/lib/wagmi-config";
 
 interface BuyModalProps {
   offerId: bigint;
+  open: boolean;
   onClose: () => void;
 }
 
-export function BuyModal({ offerId, onClose }: BuyModalProps) {
+export function BuyModal({ offerId, open, onClose }: BuyModalProps) {
   const t = useTranslations("buyModal");
-  const [txState, setTxState] = useState<TxState>("idle");
-  const { acceptOffer, isAcceptingOffer } = useEnergyTrading();
+  const tx = useTranslations("txToast");
+  const router = useRouter();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { acceptOffer } = useEnergyTrading();
 
   const { data: offer } = useReadContract({
     address: CONTRACT_ADDRESSES.energyTrading,
@@ -29,100 +41,73 @@ export function BuyModal({ offerId, onClose }: BuyModalProps) {
     args: [offerId],
   });
 
-  const o = offer as { amount: bigint; pricePerWh: bigint } | undefined;
-  const totalCost = o ? o.amount * o.pricePerWh : 0n;
+  const currentOffer = offer as { amount: bigint; pricePerWh: bigint } | undefined;
+  const totalCost = currentOffer ? currentOffer.amount * currentOffer.pricePerWh : 0n;
 
   const handleConfirm = async () => {
-    if (!o) return;
-    setTxState("pending");
+    if (!currentOffer) return;
+
+    setIsProcessing(true);
+    const toastId = showTxLoading(tx("pending"));
+
     try {
       const hash = await acceptOffer(offerId, totalCost);
-      setTxState("confirming");
+      showTxLoading(tx("confirming"), toastId);
       await waitForLocalTransaction(hash);
-      setTxState("success");
-      setTimeout(onClose, 2000);
+      dismissTxToast(toastId);
+      showTxSuccess(tx("success"), {
+        description: t("successMessage"),
+        action: {
+          label: t("viewCompletedTrades"),
+          onClick: () => router.push("/completed-trades"),
+        },
+      });
+      onClose();
     } catch {
-      setTxState("error");
+      dismissTxToast(toastId);
+      showTxError(tx("error"));
+    } finally {
+      setIsProcessing(false);
     }
   };
 
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 z-40 bg-black/60"
-        onClick={onClose}
-      />
+    <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>
+            {currentOffer ? formatWh(currentOffer.amount) : "—"} ·{" "}
+            {currentOffer ? formatEth(totalCost) : "—"}
+          </DialogDescription>
+        </DialogHeader>
 
-      {/* Modal */}
-      <div
-        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 panel p-6 w-80 space-y-4"
-        style={{ borderColor: "var(--amber)" }}
-      >
-        <h2 className="font-display text-2xl" style={{ color: "var(--amber)" }}>
-          {t("title")}
-        </h2>
-
-        {o && (
-          <div className="space-y-2 font-data text-sm">
-            <div className="flex justify-between">
-              <span style={{ color: "var(--text-muted)" }}>{t("amount")}</span>
-              <span style={{ color: "var(--text-primary)" }}>{formatWh(o.amount)}</span>
+        {currentOffer ? (
+          <div className="grid gap-3 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">{t("amount")}</span>
+              <span className="font-mono">{formatWh(currentOffer.amount)}</span>
             </div>
-            <div className="flex justify-between">
-              <span style={{ color: "var(--text-muted)" }}>{t("totalCost")}</span>
-              <span style={{ color: "var(--cyan)" }}>{formatEth(totalCost)}</span>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">{t("totalCost")}</span>
+              <span className="font-mono text-market-up">{formatEth(totalCost)}</span>
             </div>
-            <div className="flex justify-between">
-              <span style={{ color: "var(--text-muted)" }}>{t("estGas")}</span>
-              <span style={{ color: "var(--text-muted)" }}>~80,000</span>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">{t("estGas")}</span>
+              <span className="font-mono text-muted-foreground">~80,000</span>
             </div>
           </div>
-        )}
+        ) : null}
 
-        <div className="flex gap-3 pt-2">
-          <button
-            onClick={onClose}
-            className="flex-1 font-data text-xs py-2 rounded border"
-            style={{ borderColor: "var(--bg-border)", color: "var(--text-muted)" }}
-          >
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
             {t("cancel")}
-          </button>
-          <button
-            onClick={handleConfirm}
-            disabled={isAcceptingOffer || txState === "pending" || txState === "confirming"}
-            className="flex-1 font-data text-xs py-2 rounded border disabled:opacity-50"
-            style={{
-              borderColor: "var(--amber)",
-              color: "var(--amber)",
-              background: "rgba(255,165,0,0.1)",
-            }}
-          >
-            {txState === "pending" || txState === "confirming" ? t("processing") : t("confirm")}
-          </button>
-        </div>
-
-        {txState === "success" && (
-          <div className="pt-2 border-t space-y-3" style={{ borderColor: "var(--bg-border)" }}>
-            <p className="font-data text-xs" style={{ color: "var(--text-muted)" }}>
-              {t("successMessage")}
-            </p>
-            <Link
-              href="/completed-trades"
-              className="inline-flex font-data text-xs px-3 py-2 rounded border transition-colors"
-              style={{
-                color: "var(--emerald)",
-                borderColor: "var(--emerald)",
-                background: "rgba(16,185,129,0.08)",
-              }}
-            >
-              {t("viewCompletedTrades")}
-            </Link>
-          </div>
-        )}
-      </div>
-
-      <TxToast state={txState} onDismiss={() => setTxState("idle")} />
-    </>
+          </Button>
+          <Button onClick={handleConfirm} disabled={isProcessing || !currentOffer}>
+            {isProcessing ? t("processing") : t("confirm")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

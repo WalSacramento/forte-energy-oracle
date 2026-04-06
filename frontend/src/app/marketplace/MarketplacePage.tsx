@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { useEnergyTrading } from "@/hooks/useEnergyTrading";
+import { Zap } from "lucide-react";
 import { OfferCard } from "@/components/marketplace/OfferCard";
 import { BuyModal } from "@/components/marketplace/BuyModal";
+import { Button } from "@/components/ui/button";
+import { useEnergyTrading } from "@/hooks/useEnergyTrading";
 
 export function MarketplacePage() {
   const t = useTranslations("marketplace");
@@ -16,42 +18,36 @@ export function MarketplacePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <h1 className="font-display text-3xl" style={{ color: "var(--amber)" }}>
-          {t("title")}
-        </h1>
-        <Link
-          href="/completed-trades"
-          className="font-data text-xs px-3 py-1.5 rounded border transition-colors"
-          style={{
-            color: "var(--emerald)",
-            borderColor: "var(--emerald)",
-            background: "rgba(16,185,129,0.08)",
-          }}
-        >
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Zap className="size-5 text-primary" />
+            <h1 className="font-display text-2xl font-bold tracking-tight">{t("title")}</h1>
+          </div>
+          <p className="font-mono text-xs text-muted-foreground">
+            Browse validated offers and execute purchases with on-chain confirmation.
+          </p>
+        </div>
+        <Button variant="outline" size="sm" render={<Link href="/completed-trades" />}>
           {t("viewCompletedTrades")}
-        </Link>
+        </Button>
       </div>
 
       {offerIds.length === 0 ? (
-        <div className="space-y-2">
-          <p className="font-data text-sm" style={{ color: "var(--text-muted)" }}>
-            {t("noActiveOffers")}
-          </p>
-          <Link
-            href="/completed-trades"
-            className="inline-flex font-data text-xs px-3 py-1.5 rounded border transition-colors"
-            style={{
-              color: "var(--emerald)",
-              borderColor: "var(--emerald)",
-              background: "rgba(16,185,129,0.08)",
-            }}
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border/60 bg-card/50 py-12 text-center">
+          <span className="size-1.5 rounded-full bg-muted-foreground/40 dot-pulse" />
+          <p className="font-mono text-sm text-muted-foreground">{t("noActiveOffers")}</p>
+          <Button
+            variant="link"
+            size="sm"
+            className="h-auto p-0 font-mono text-xs text-primary"
+            render={<Link href="/completed-trades" />}
           >
             {t("checkRecentTrades")}
-          </Link>
+          </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {offerIds.map((id) => (
             <OfferCard
               key={id.toString()}
@@ -62,12 +58,13 @@ export function MarketplacePage() {
         </div>
       )}
 
-      {selectedOffer !== null && (
+      {selectedOffer !== null ? (
         <BuyModal
           offerId={selectedOffer}
+          open={selectedOffer !== null}
           onClose={() => setSelectedOffer(null)}
         />
-      )}
+      ) : null}
     </div>
   );
 }

@@ -1,147 +1,195 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { parseEther } from "viem";
 import { useTranslations } from "next-intl";
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer,
+  CartesianGrid,
+  Line,
+  LineChart,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
-import { useEnergyAuction } from "@/hooks/useEnergyAuction";
-import { TxToast, type TxState } from "@/components/shared/TxToast";
+import { dismissTxToast, showTxError, showTxLoading, showTxSuccess } from "@/components/shared/TxToast";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { waitForLocalTransaction } from "@/lib/transactions";
+import { useEnergyAuction } from "@/hooks/useEnergyAuction";
 
 export function CreateAuctionForm() {
   const t = useTranslations("createAuctionForm");
+  const tx = useTranslations("txToast");
   const [meterId, setMeterId] = useState("METER001");
   const [energyAmount, setEnergyAmount] = useState("500");
   const [startPriceEth, setStartPriceEth] = useState("0.01");
   const [minPriceEth, setMinPriceEth] = useState("0.004");
   const [durationMin, setDurationMin] = useState("60");
-  const [txState, setTxState] = useState<TxState>("idle");
-
   const { createAuction } = useEnergyAuction();
 
-  // Build decay preview chart data
   const chartData = useMemo(() => {
-    const startP = parseFloat(startPriceEth) || 0;
-    const minP = parseFloat(minPriceEth) || 0;
-    const dur = parseInt(durationMin) || 60;
+    const start = parseFloat(startPriceEth) || 0;
+    const min = parseFloat(minPriceEth) || 0;
+    const duration = parseInt(durationMin, 10) || 60;
     const points = 30;
-    return Array.from({ length: points + 1 }, (_, i) => {
-      const t = (i / points) * dur;
-      const decayed = startP - (startP - minP) * (i / points);
-      return { t: Math.round(t), price: Math.max(minP, decayed) };
-    });
-  }, [startPriceEth, minPriceEth, durationMin]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setTxState("pending");
+    return Array.from({ length: points + 1 }, (_, index) => {
+      const minute = (index / points) * duration;
+      const price = start - (start - min) * (index / points);
+      return { minute: Math.round(minute), price: Math.max(min, price) };
+    });
+  }, [durationMin, minPriceEth, startPriceEth]);
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const toastId = showTxLoading(tx("pending"));
+
     try {
       const hash = await createAuction(
         meterId,
         BigInt(energyAmount),
         parseEther(startPriceEth),
         parseEther(minPriceEth),
-        BigInt(parseInt(durationMin) * 60)
+        BigInt(parseInt(durationMin, 10) * 60)
       );
-
-      setTxState("confirming");
+      showTxLoading(tx("confirming"), toastId);
       await waitForLocalTransaction(hash);
-      setTxState("success");
+      dismissTxToast(toastId);
+      showTxSuccess(tx("success"));
     } catch {
-      setTxState("error");
+      dismissTxToast(toastId);
+      showTxError(tx("error"));
     }
   };
 
-  const inputStyle = {
-    background: "var(--bg-base)",
-    border: "1px solid var(--bg-border)",
-    color: "var(--text-primary)",
-    fontFamily: "var(--font-space)",
-    fontSize: "0.75rem",
-    padding: "6px 10px",
-    borderRadius: "4px",
-    width: "100%",
-  };
-
-  const labelStyle = {
-    color: "var(--text-muted)",
-    fontFamily: "var(--font-space)",
-    fontSize: "0.7rem",
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.05em",
-    display: "block",
-    marginBottom: "4px",
-  };
-
   return (
-    <>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-2xl">
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label style={labelStyle}>{t("meterId")}</label>
-            <input style={inputStyle} value={meterId} onChange={(e) => setMeterId(e.target.value)} />
-          </div>
-          <div>
-            <label style={labelStyle}>{t("energyAmount")}</label>
-            <input style={inputStyle} type="number" value={energyAmount} onChange={(e) => setEnergyAmount(e.target.value)} />
-          </div>
-          <div>
-            <label style={labelStyle}>{t("startPrice")}</label>
-            <input style={inputStyle} type="number" step="0.0001" value={startPriceEth} onChange={(e) => setStartPriceEth(e.target.value)} />
-          </div>
-          <div>
-            <label style={labelStyle}>{t("minPrice")}</label>
-            <input style={inputStyle} type="number" step="0.0001" value={minPriceEth} onChange={(e) => setMinPriceEth(e.target.value)} />
-          </div>
-          <div>
-            <label style={labelStyle}>{t("duration")}</label>
-            <input style={inputStyle} type="number" value={durationMin} onChange={(e) => setDurationMin(e.target.value)} />
-          </div>
-          <button
-            type="submit"
-            disabled={txState === "pending" || txState === "confirming"}
-            className="font-data text-xs px-4 py-2 rounded border"
-            style={{
-              color: "var(--cyan)",
-              borderColor: "var(--cyan)",
-              background: "rgba(0,229,255,0.1)",
-            }}
-          >
-            {txState === "pending" || txState === "confirming" ? t("processing") : t("createAuction")}
-          </button>
-        </form>
+    <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("createAuction")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="auction-meter">{t("meterId")}</Label>
+              <Select
+                value={meterId}
+                onValueChange={(value) => {
+                  if (value) {
+                    setMeterId(value);
+                  }
+                }}
+              >
+                <SelectTrigger id="auction-meter">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="METER001">METER001</SelectItem>
+                  <SelectItem value="METER002">METER002</SelectItem>
+                  <SelectItem value="METER003">METER003</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-        {/* Live decay preview */}
-        <div>
-          <p style={labelStyle}>{t("priceDecayPreview")}</p>
-          <div className="panel p-3" style={{ height: 200 }}>
+            <div className="grid gap-2">
+              <Label htmlFor="auction-energy">{t("energyAmount")}</Label>
+              <Input
+                id="auction-energy"
+                type="number"
+                value={energyAmount}
+                onChange={(event) => setEnergyAmount(event.target.value)}
+              />
+            </div>
+
+            <div className="grid gap-2 md:grid-cols-2">
+              <div className="grid gap-2">
+                <Label htmlFor="auction-start-price">{t("startPrice")}</Label>
+                <Input
+                  id="auction-start-price"
+                  type="number"
+                  step="0.0001"
+                  value={startPriceEth}
+                  onChange={(event) => setStartPriceEth(event.target.value)}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="auction-min-price">{t("minPrice")}</Label>
+                <Input
+                  id="auction-min-price"
+                  type="number"
+                  step="0.0001"
+                  value={minPriceEth}
+                  onChange={(event) => setMinPriceEth(event.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="auction-duration">{t("duration")}</Label>
+              <Input
+                id="auction-duration"
+                type="number"
+                value={durationMin}
+                onChange={(event) => setDurationMin(event.target.value)}
+              />
+            </div>
+
+            <Button type="submit">{t("createAuction")}</Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("priceDecayPreview")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--bg-border)" />
+                <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="4 4" />
                 <XAxis
-                  dataKey="t"
-                  tick={{ fill: "var(--text-muted)", fontSize: 10, fontFamily: "var(--font-space)" }}
-                  label={{ value: t("minutes"), position: "insideRight", fill: "var(--text-muted)", fontSize: 10 }}
+                  dataKey="minute"
+                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
                 />
                 <YAxis
-                  tick={{ fill: "var(--text-muted)", fontSize: 10, fontFamily: "var(--font-space)" }}
+                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
                 />
                 <Tooltip
-                  contentStyle={{ background: "var(--bg-panel)", border: "1px solid var(--bg-border)", fontFamily: "var(--font-space)", fontSize: 10 }}
-                  labelStyle={{ color: "var(--text-muted)" }}
-                  itemStyle={{ color: "var(--cyan)" }}
+                  contentStyle={{
+                    background: "hsl(var(--popover))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: 12,
+                  }}
                 />
-                <ReferenceLine y={parseFloat(minPriceEth) || 0} stroke="var(--red)" strokeDasharray="4 4" />
-                <Line type="linear" dataKey="price" stroke="var(--cyan)" dot={false} strokeWidth={2} />
+                <ReferenceLine
+                  y={parseFloat(minPriceEth) || 0}
+                  stroke="hsl(var(--chart-2))"
+                  strokeDasharray="4 4"
+                />
+                <Line
+                  type="linear"
+                  dataKey="price"
+                  stroke="hsl(var(--chart-1))"
+                  dot={false}
+                  strokeWidth={2}
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
-        </div>
-      </div>
-      <TxToast state={txState} onDismiss={() => setTxState("idle")} />
-    </>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
