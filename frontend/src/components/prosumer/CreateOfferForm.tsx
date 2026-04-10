@@ -96,7 +96,7 @@ export function CreateOfferForm() {
             />
           </div>
 
-          <Button type="submit" disabled={isCreatingOffer}>
+          <Button type="submit" disabled={isCreatingOffer} data-testid="create-offer-submit">
             {isCreatingOffer ? t("processing") : t("createOffer")}
           </Button>
         </form>

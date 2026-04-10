@@ -67,7 +67,7 @@ export function AuctionCard({ auctionId, hero = false }: AuctionCardProps) {
   const totalCost = currentPrice * auction.energyAmount;
 
   return (
-    <Card className={cn("h-full", isExpired ? "card-accent-gray" : "card-accent-amber")}>
+    <Card className={cn("h-full", isExpired ? "card-accent-gray" : "card-accent-amber")} data-testid={`auction-card-${auctionId.toString()}`}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between gap-3">
           <Badge variant="outline" className="font-mono text-xs">
@@ -88,7 +88,7 @@ export function AuctionCard({ auctionId, hero = false }: AuctionCardProps) {
         {/* Current price — primary datum */}
         <div className="pt-1">
           <div className="flex items-baseline gap-1.5">
-            <span className={cn("font-mono font-bold text-primary", hero ? "text-4xl" : "text-3xl")}>
+            <span className={cn("font-mono font-bold text-primary", hero ? "text-4xl" : "text-3xl")} data-testid="current-price">
               {formatEthPrice(currentPrice)}
             </span>
             <span className="font-mono text-xs text-muted-foreground">/Wh</span>
@@ -118,7 +118,7 @@ export function AuctionCard({ auctionId, hero = false }: AuctionCardProps) {
       </CardContent>
 
       <CardFooter className="justify-end pt-0">
-        <Button size="sm" variant={isExpired ? "ghost" : "default"} disabled={isExpired}>
+        <Button size="sm" variant={isExpired ? "ghost" : "default"} disabled={isExpired} data-testid="place-bid-btn">
           Place Bid
         </Button>
       </CardFooter>

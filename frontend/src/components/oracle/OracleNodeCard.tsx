@@ -35,6 +35,7 @@ export function OracleNodeCard({
         "card-accent-cyan transition-shadow",
         isOnline && "oracle-online-glow"
       )}
+      data-testid={`oracle-card-${nodeIndex}`}
     >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
@@ -56,6 +57,7 @@ export function OracleNodeCard({
                 ? "bg-market-up/10 text-market-up"
                 : "bg-destructive/10 text-destructive"
             )}
+            data-testid={`oracle-status-${nodeIndex}`}
           >
             {isOnline ? t("online") : t("offline")}
           </span>
@@ -67,7 +69,7 @@ export function OracleNodeCard({
             <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
               Reputation
             </span>
-            <span className="font-mono text-[10px] text-muted-foreground">{reputation}%</span>
+            <span className="font-mono text-[10px] text-muted-foreground" data-testid={`oracle-reputation-${nodeIndex}`}>{reputation}%</span>
           </div>
           <Progress value={reputation} className="h-1.5" />
         </div>

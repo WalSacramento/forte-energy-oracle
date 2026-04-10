@@ -147,6 +147,7 @@ export function RequestTable() {
                 <TableRow
                   className="cursor-pointer"
                   onClick={() => setExpandedId(isExpanded ? null : key)}
+                  data-testid={`request-row-${key}`}
                 >
                   <TableCell className="font-mono">#{key}</TableCell>
                   <TableCell>{row.meterId}</TableCell>

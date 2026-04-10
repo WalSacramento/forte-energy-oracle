@@ -70,7 +70,7 @@ export function OfferCard({ offerId, onBuy }: OfferCardProps) {
   const validationState = ORACLE_STATUS_MAP[currentOffer.status] ?? "PENDING";
 
   return (
-    <Card className={cn("h-full", isExpiringSoon ? "card-accent-red" : "card-accent-amber")}>
+    <Card className={cn("h-full", isExpiringSoon ? "card-accent-red" : "card-accent-amber")} data-testid={`offer-card-${offerId.toString()}`}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between gap-2">
           <Badge variant="outline" className="font-mono text-xs">
@@ -108,7 +108,7 @@ export function OfferCard({ offerId, onBuy }: OfferCardProps) {
       </CardContent>
 
       <CardFooter>
-        <Button onClick={onBuy} size="sm" className="w-full">
+        <Button onClick={onBuy} size="sm" className="w-full" data-testid="buy-btn">
           {t("buy")}
         </Button>
       </CardFooter>

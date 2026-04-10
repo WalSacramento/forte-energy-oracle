@@ -54,11 +54,16 @@
     "perf:local": "npm run k6:setup && npm run k6:all && npm run k6:teardown",
     "perf:testnet": "npm run testnet:deploy && npm run testnet:test",
     "clean": "hardhat clean && rm -rf cache artifacts",
+    "cypress": "cypress",
     "lint": "eslint . --ext .js,.sol",
     "format": "prettier --write .",
     "check-setup": "node scripts/check-setup.js",
     "setup": "npm install && cd oracle-nodes && npm install && cd ../mock-hems && npm install",
-    "report": "node scripts/generate-report.js"
+    "report": "node scripts/generate-report.js",
+    "cypress:open": "cypress run --headed --browser electron",
+    "cypress:run": "cypress run --browser electron",
+    "cypress:e2e": "cypress run --headed --browser electron --spec 'cypress/e2e/*.cy.ts'",
+    "test:e2e": "start-server-and-test frontend:dev http://localhost:3001 cypress:run"
   },
   "keywords": [
     "blockchain",
@@ -81,12 +86,14 @@
     "@typechain/hardhat": "^9.0.0",
     "chai": "^4.3.0",
     "concurrently": "^8.2.0",
+    "cypress": "^13.17.0",
     "eslint": "^8.50.0",
     "hardhat": "^2.19.0",
     "hardhat-gas-reporter": "^1.0.9",
     "prettier": "^3.0.0",
     "shadcn": "^4.1.2",
     "solidity-coverage": "^0.8.5",
+    "start-server-and-test": "^2.1.5",
     "typechain": "^8.3.0"
   },
   "dependencies": {

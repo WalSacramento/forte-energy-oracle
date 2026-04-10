@@ -107,3 +107,9 @@ OMNIORACLE_FRAMEWORK.md
 *.zip
 !docs/*.zip
 
+# === Cypress E2E ===
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
+.cypress-cache/
+

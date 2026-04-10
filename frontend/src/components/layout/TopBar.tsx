@@ -74,6 +74,7 @@ export function TopBar() {
               size="sm"
               className="h-7 text-xs text-muted-foreground hover:text-foreground"
               onClick={() => disconnect()}
+              data-testid="disconnect-btn"
             >
               {t("disconnect")}
             </Button>
@@ -84,6 +85,7 @@ export function TopBar() {
             className="h-7 text-xs"
             onClick={handleConnect}
             disabled={!injectedConnector || isPending}
+            data-testid="connect-wallet-btn"
           >
             {isPending ? t("connecting") : t("connectWallet")}
           </Button>

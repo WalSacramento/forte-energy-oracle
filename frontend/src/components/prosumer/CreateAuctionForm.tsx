@@ -145,7 +145,7 @@ export function CreateAuctionForm() {
               />
             </div>
 
-            <Button type="submit">{t("createAuction")}</Button>
+            <Button type="submit" data-testid="create-auction-submit">{t("createAuction")}</Button>
           </form>
         </CardContent>
       </Card>

@@ -73,7 +73,7 @@ export function BuyModal({ offerId, open, onClose }: BuyModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" data-testid="buy-modal">
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>
@@ -103,7 +103,7 @@ export function BuyModal({ offerId, open, onClose }: BuyModalProps) {
           <Button variant="outline" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button onClick={handleConfirm} disabled={isProcessing || !currentOffer}>
+          <Button onClick={handleConfirm} disabled={isProcessing || !currentOffer} data-testid="confirm-buy-btn">
             {isProcessing ? t("processing") : t("confirm")}
           </Button>
         </DialogFooter>
