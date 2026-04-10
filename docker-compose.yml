@@ -15,6 +15,25 @@ services:
       timeout: 5s
       retries: 5
 
+  # Contract Deployer — roda uma vez após hardhat-node subir, depois sai
+  deployer:
+    build:
+      context: .
+      dockerfile: docker/hardhat/Dockerfile
+    container_name: eaon-deployer
+    command: npx hardhat run scripts/deploy.js --network localhost
+    environment:
+      - HARDHAT_RPC_URL=http://hardhat-node:8545
+    volumes:
+      - ./deployments:/app/deployments
+      - ./artifacts:/app/artifacts
+    depends_on:
+      hardhat-node:
+        condition: service_healthy
+    networks:
+      - eaon-network
+    restart: "no"
+
   # Mock HEMS API
   mock-hems:
     build:
@@ -53,8 +72,8 @@ services:
       - PRIVATE_KEY=0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d
       - CONTRACT_ADDRESS=${CONTRACT_ADDRESS:-}
     depends_on:
-      hardhat-node:
-        condition: service_healthy
+      deployer:
+        condition: service_completed_successfully
       mock-hems:
         condition: service_healthy
     networks:
@@ -79,8 +98,8 @@ services:
       - PRIVATE_KEY=0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a
       - CONTRACT_ADDRESS=${CONTRACT_ADDRESS:-}
     depends_on:
-      hardhat-node:
-        condition: service_healthy
+      deployer:
+        condition: service_completed_successfully
       mock-hems:
         condition: service_healthy
     networks:
@@ -105,8 +124,8 @@ services:
       - PRIVATE_KEY=0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6
       - CONTRACT_ADDRESS=${CONTRACT_ADDRESS:-}
     depends_on:
-      hardhat-node:
-        condition: service_healthy
+      deployer:
+        condition: service_completed_successfully
       mock-hems:
         condition: service_healthy
     networks:
@@ -140,8 +159,8 @@ services:
       - ./artifacts:/app/artifacts:ro
       - ./deployments:/app/deployments:ro
     depends_on:
-      hardhat-node:
-        condition: service_healthy
+      deployer:
+        condition: service_completed_successfully
     networks:
       - eaon-network
 

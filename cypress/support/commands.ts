@@ -48,6 +48,8 @@ declare global {
 let _provider: MockEthereumProvider | null = null;
 
 Cypress.Commands.add('visitWithWallet', (url: string, accountIndex: 0 | 1 = 0) => {
+  // Garante locale "en" para que os specs encontrem os textos corretos
+  cy.setCookie('NEXT_LOCALE', 'en');
   cy.visit(url, {
     onBeforeLoad(win) {
       // Limpa o estado persistido do wagmi ANTES do JS carregar

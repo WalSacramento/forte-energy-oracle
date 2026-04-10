@@ -79,6 +79,36 @@ export default defineConfig({
           return response.json();
         },
 
+        // Para um container Docker (crash fault)
+        async stopOracleContainer({ containerName }: { containerName: string }) {
+          const { execSync } = await import('child_process');
+          try {
+            execSync(`docker stop ${containerName}`, { timeout: 10000 });
+            return { success: true };
+          } catch (e) {
+            return { success: false, error: String(e) };
+          }
+        },
+
+        // Reinicia um container Docker (crash recovery)
+        async startOracleContainer({ containerName }: { containerName: string }) {
+          const { execSync } = await import('child_process');
+          try {
+            execSync(`docker start ${containerName}`, { timeout: 15000 });
+            return { success: true };
+          } catch (e) {
+            return { success: false, error: String(e) };
+          }
+        },
+
+        // Lê o arquivo de deployment para obter endereços de contratos e oracles
+        async readDeployment() {
+          const { readFileSync } = await import('fs');
+          const { join } = await import('path');
+          const filePath = join(process.cwd(), 'deployments', 'localhost.json');
+          return JSON.parse(readFileSync(filePath, 'utf-8'));
+        },
+
         // Consulta reputação de um oracle pelo índice
         async getOracleReputation({ contractAddress, oracleAddress }: { contractAddress: string; oracleAddress: string }) {
           // Chama getOracleInfo(address) — seletor 0x693f2f51
