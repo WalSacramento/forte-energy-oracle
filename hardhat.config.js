@@ -54,7 +54,17 @@ module.exports = {
     }
   },
   mocha: {
-    timeout: 40000
+    timeout: 40000,
+    reporter: 'mochawesome',
+    reporterOptions: {
+      reportDir: 'results/local/hardhat',
+      reportFilename: 'hardhat-report',
+      html: true,
+      json: true,
+      overwrite: true,
+      charts: true,
+      reportPageTitle: 'EAON Hardhat Test Report'
+    }
   },
   paths: {
     sources: "./contracts",

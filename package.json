@@ -52,6 +52,7 @@
     "testnet:test": "node scripts/testnet/performance-test.js",
     "analysis:table": "python3 scripts/analysis/generate-latex-table.py results/local/k6/baseline-results.json",
     "analysis:consolidate": "node scripts/analysis/consolidate-metrics.js",
+    "test:full": "bash scripts/run-all-tests.sh",
     "perf:local": "npm run k6:setup && npm run k6:all && npm run k6:teardown",
     "perf:testnet": "npm run testnet:deploy && npm run testnet:test",
     "clean": "hardhat clean && rm -rf cache artifacts",
