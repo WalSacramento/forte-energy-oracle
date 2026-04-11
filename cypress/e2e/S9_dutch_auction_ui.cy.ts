@@ -17,11 +17,6 @@
  */
 
 describe('S9 — End-to-End UI Dutch Auction Flow', () => {
-  before(() => {
-    cy.task('resetHardhat');
-    cy.wait(2000);
-  });
-
   it('deve criar um Dutch Auction, observar decaimento de preço e registrar lance via UI', () => {
     // ── Etapa 1: Visitar auctions e capturar estado inicial ──
     cy.visitWithWallet('/auctions', 0);
@@ -47,7 +42,8 @@ describe('S9 — End-to-End UI Dutch Auction Flow', () => {
 
     // Submeter
     cy.get('[data-testid="create-auction-submit"]').click();
-    cy.contains('success', { timeout: 60000, matchCase: false }).should('exist');
+    // Aguardar confirmação da transação (toast: "Transaction confirmed!")
+    cy.contains(/confirmed/i, { timeout: 60000 }).should('exist');
     cy.wait(3000);
 
     // ── Etapa 3: Navegar para /auctions e verificar auction criado ──

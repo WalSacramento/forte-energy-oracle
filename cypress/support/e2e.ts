@@ -1,3 +1,4 @@
+import 'cypress-mochawesome-reporter/register';
 // Importa os comandos customizados
 import './commands';
 

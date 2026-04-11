@@ -1,6 +1,19 @@
 import { defineConfig } from 'cypress';
 
 export default defineConfig({
+  reporter: 'cypress-mochawesome-reporter',
+  reporterOptions: {
+    charts: true,
+    reportPageTitle: 'EAON E2E Test Report',
+    embeddedScreenshots: true,
+    inlineAssets: true,
+    saveAllAttempts: false,
+    reportDir: 'results/local/cypress',
+    reportFilename: 'e2e-report',
+    overwrite: true,
+    html: true,
+    json: true,
+  },
   e2e: {
     baseUrl: 'http://localhost:3001',
     specPattern: 'cypress/e2e/**/*.cy.ts',
@@ -74,7 +87,7 @@ export default defineConfig({
         async injectOracleFault({ oracleId, type }: { oracleId: string; type: string }) {
           const url = type === 'malicious'
             ? `http://localhost:3000/admin/oracle/malicious/${oracleId}`
-            : `http://localhost:3000/admin/honest/${oracleId}`;
+            : `http://localhost:3000/admin/oracle/honest/${oracleId}`;
           const response = await fetch(url, { method: 'POST' });
           return response.json();
         },
@@ -111,8 +124,8 @@ export default defineConfig({
 
         // Consulta reputação de um oracle pelo índice
         async getOracleReputation({ contractAddress, oracleAddress }: { contractAddress: string; oracleAddress: string }) {
-          // Chama getOracleInfo(address) — seletor 0x693f2f51
-          const data = '0x693f2f51' + oracleAddress.slice(2).padStart(64, '0');
+          // Chama getOracleInfo(address) — seletor correto: keccak256("getOracleInfo(address)")[0:4]
+          const data = '0xbfdb6b04' + oracleAddress.slice(2).padStart(64, '0');
           const response = await fetch('http://localhost:8545', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -123,10 +136,12 @@ export default defineConfig({
               params: [{ to: contractAddress, data }, 'latest'],
             }),
           });
-          const { result } = await response.json() as { result: string };
-          // Extrai o campo reputation (segundo uint256 no retorno)
-          const reputation = parseInt(result.slice(66, 130), 16);
-          return reputation;
+          const json = await response.json() as { result?: string; error?: { message: string } };
+          if (json.error) throw new Error(`getOracleReputation falhou: ${json.error.message}`);
+          if (!json.result || json.result === '0x') return 0;
+          // OracleNode struct: address (32 bytes) | uint256 reputation (32 bytes) | bool isActive (32 bytes)
+          const reputation = parseInt(json.result.slice(66, 130), 16);
+          return Number.isNaN(reputation) ? 0 : reputation;
         },
       });
     },

@@ -25,9 +25,10 @@ describe('S10 — Oracle Fault Monitoring via UI', () => {
   const ORACLE_3_ADDRESS   = '0x90F79bf6EB2c4f870365E785982E1f101E93b906';
   before(() => {
     // Garante estado honesto inicial em todos os oracles
-    cy.task('injectOracleFault', { oracleId: '1', type: 'honest' });
-    cy.task('injectOracleFault', { oracleId: '2', type: 'honest' });
-    cy.task('injectOracleFault', { oracleId: '3', type: 'honest' });
+    // IDs devem corresponder ao nodeId nos configs: oracle-nodes/config/nodeN.json
+    cy.task('injectOracleFault', { oracleId: 'oracle-1', type: 'honest' });
+    cy.task('injectOracleFault', { oracleId: 'oracle-2', type: 'honest' });
+    cy.task('injectOracleFault', { oracleId: 'oracle-3', type: 'honest' });
     cy.wait(1000);
   });
 
@@ -52,8 +53,8 @@ describe('S10 — Oracle Fault Monitoring via UI', () => {
     cy.screenshot('s10-01-all-online');
 
     // ── Etapa 2: Injetar comportamento Bizantino SOMENTE no Oracle Node 3 ──
-    // Usa /admin/oracle/malicious/3 → apenas o nó 3 retorna leituras outlier
-    cy.injectOracleFault('3', 'malicious');
+    // Usa /admin/oracle/malicious/oracle-3 → apenas o nó 3 retorna leituras outlier (10x)
+    cy.injectOracleFault('oracle-3', 'malicious');
     cy.wait(500);
 
     // ── Etapa 3: Criar uma oferta via /prosumer para disparar um oracle request ──
@@ -100,7 +101,7 @@ describe('S10 — Oracle Fault Monitoring via UI', () => {
     cy.screenshot('s10-02-oracle-penalized');
 
     // ── Etapa 5: Restaurar Oracle 3 ao comportamento honesto ──
-    cy.injectOracleFault('3', 'honest');
+    cy.injectOracleFault('oracle-3', 'honest');
     cy.wait(500);
 
     // ── Etapa 6: Disparar 5 requests honestos para recuperar reputação (+1 cada) ──

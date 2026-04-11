@@ -136,7 +136,7 @@ export function AuctionDetail({ auctionId }: { auctionId: bigint }) {
           <Card>
             <CardHeader>
               <CardTitle className="text-3xl">
-                <span className="font-mono">{formatEthPrice(currentPrice)}</span>
+                <span className="font-mono" data-testid="current-price">{formatEthPrice(currentPrice)}</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">

@@ -16,15 +16,9 @@
  */
 
 describe('S8 — End-to-End UI Marketplace Flow', () => {
-  before(() => {
-    // Garante que o estado do Hardhat está limpo antes do cenário
-    cy.task('resetHardhat');
-    cy.wait(2000);
-  });
-
   it('deve permitir criar uma oferta, visualizá-la no marketplace e comprá-la via dashboard', () => {
-    // ── Etapa 1: Visitar marketplace com carteira injetada (conta 0 = vendedor) ──
-    cy.visitWithWallet('/prosumer', 0);
+    // ── Etapa 1: Visitar marketplace e verificar heading ──
+    cy.visitWithWallet('/marketplace', 0);
     cy.contains('ENERGY MARKETPLACE', { timeout: 15000 }).should('exist');
 
     // ── Etapa 2: Conectar carteira ──
@@ -49,12 +43,12 @@ describe('S8 — End-to-End UI Marketplace Flow', () => {
     // Submeter a oferta
     cy.get('[data-testid="create-offer-submit"]').click();
 
-    // Aguardar confirmação da transação (toast de sucesso)
-    cy.contains('success', { timeout: 60000, matchCase: false }).should('exist');
+    // Aguardar confirmação da transação (toast: "Transaction confirmed!")
+    cy.contains(/confirmed/i, { timeout: 60000 }).should('exist');
     cy.wait(3000);
 
-    // ── Etapa 5: Navegar para Marketplace e verificar oferta criada ──
-    cy.visitWithWallet('/marketplace', 0);
+    // ── Etapa 5: Navegar para Marketplace como comprador (account 1 ≠ vendedor account 0) ──
+    cy.visitWithWallet('/marketplace', 1);
     cy.connectWallet();
     cy.wait(5000); // Aguarda carregamento dos contratos
 
@@ -71,8 +65,8 @@ describe('S8 — End-to-End UI Marketplace Flow', () => {
     // ── Etapa 7: Confirmar a compra ──
     cy.get('[data-testid="confirm-buy-btn"]').click();
 
-    // Aguardar conclusão da transação
-    cy.contains('success', { timeout: 60000, matchCase: false }).should('exist');
+    // Aguardar conclusão da transação (toast: "Transaction confirmed!")
+    cy.contains(/confirmed/i, { timeout: 60000 }).should('exist');
     cy.wait(3000);
 
     // ── Etapa 8: Navegar para History e verificar trade registrado ──

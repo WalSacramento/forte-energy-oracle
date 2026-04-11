@@ -77,8 +77,9 @@ describe('S11 — Crash Fault: Tolerância a Oracle Offline via UI', () => {
     // Prova que o consenso de 2/3 funcionou e o trade foi registrado on-chain
     cy.visitWithWallet('/marketplace', 0);
     cy.connectWallet();
-    cy.wait(5000);
-    cy.get('[data-testid^="offer-card-"]', { timeout: 20000 }).should(
+    // Aguarda wagmi conectar ao chain e useReadContract(getActiveOffers) carregar
+    cy.wait(8000);
+    cy.get('[data-testid^="offer-card-"]', { timeout: 30000 }).should(
       'have.length.at.least', 1,
       'Oferta deve aparecer no marketplace — prova que consenso 2/3 foi alcançado',
     );

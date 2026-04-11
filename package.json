@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "frontend:dev": "cd frontend && npm run dev",
+    "frontend:dev:3001": "cd frontend && npm run dev -- --port 3001",
     "frontend:build": "cd frontend && npm run build",
     "gas-report": "REPORT_GAS=true ./node_modules/.bin/hardhat test test/unit/EnergyAuction.test.js",
     "compile": "hardhat compile",
@@ -60,10 +61,11 @@
     "check-setup": "node scripts/check-setup.js",
     "setup": "npm install && cd oracle-nodes && npm install && cd ../mock-hems && npm install",
     "report": "node scripts/generate-report.js",
-    "cypress:open": "docker-compose stop frontend 2>/dev/null; start-server-and-test frontend:dev http://localhost:3001 \"cypress run --headed --browser electron\"",
+    "cypress:open": "docker-compose up -d; docker-compose stop frontend 2>/dev/null; npx wait-on tcp:localhost:8545 tcp:localhost:3000 tcp:localhost:4001 tcp:localhost:4002 tcp:localhost:4003 -t 120000 --delay 5000; start-server-and-test frontend:dev http://localhost:3001 \"cypress run --headed --browser electron\"",
     "cypress:run": "cypress run --browser electron",
+    "cypress:report": "cypress run --browser electron --reporter cypress-mochawesome-reporter",
     "cypress:e2e": "cypress run --headed --browser electron --spec 'cypress/e2e/*.cy.ts'",
-    "test:e2e": "docker-compose stop frontend 2>/dev/null; start-server-and-test frontend:dev http://localhost:3001 cypress:run"
+    "test:e2e": "docker-compose down --remove-orphans; fuser -k 3001/tcp 2>/dev/null || true; sleep 2; docker-compose up -d hardhat-node deployer mock-hems oracle-node-1 oracle-node-2 oracle-node-3; npx wait-on tcp:localhost:8545 tcp:localhost:3000 tcp:localhost:4001 tcp:localhost:4002 tcp:localhost:4003 -t 120000 --delay 5000; start-server-and-test frontend:dev:3001 http://localhost:3001 cypress:report"
   },
   "keywords": [
     "blockchain",
@@ -87,9 +89,11 @@
     "chai": "^4.3.0",
     "concurrently": "^8.2.0",
     "cypress": "^13.17.0",
+    "cypress-mochawesome-reporter": "^4.0.2",
     "eslint": "^8.50.0",
     "hardhat": "^2.19.0",
     "hardhat-gas-reporter": "^1.0.9",
+    "mochawesome": "^7.1.4",
     "prettier": "^3.0.0",
     "shadcn": "^4.1.2",
     "solidity-coverage": "^0.8.5",
