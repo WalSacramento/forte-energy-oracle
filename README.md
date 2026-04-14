@@ -1,10 +1,10 @@
-# Energy-Aware Oracle Network (EAON)
+# FORTE — Fault-Resilient Multi-Oracle Platform for P2P Energy Trading in Microgrids
 
-Multi-Oracle Proof of Concept for P2P Energy Trading in Microgrids — Fullstack
+Reference implementation for the paper *"FORTE: A Fault-Resilient Multi-Oracle Platform for Peer-to-Peer Energy Trading in Microgrids"*.
 
 ## Overview
 
-EAON is a fault-tolerant multi-oracle architecture specifically designed for P2P energy trading in microgrids. This PoC demonstrates:
+FORTE is a fault-resilient multi-oracle platform specifically designed for peer-to-peer energy trading in microgrids. This implementation demonstrates:
 
 - Tolerance to crash faults (1 of 3 oracles offline)
 - Detection of Byzantine faults (malicious oracle)
@@ -178,7 +178,7 @@ See [DOCKER-SEPOLIA-SETUP.md](DOCKER-SEPOLIA-SETUP.md) and [GUIA-DEPLOY-SEPOLIA.
 ## Project Structure
 
 ```
-energy-oracle-network/
+forte-energy-oracle/
 ├── contracts/              # Solidity smart contracts
 │   ├── OracleAggregator.sol
 │   ├── EnergyTrading.sol
