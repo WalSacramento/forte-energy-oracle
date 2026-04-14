@@ -1,0 +1,111 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 1,
+    "pending": 0,
+    "failures": 0,
+    "start": "2026-04-11T14:11:17.999Z",
+    "end": "2026-04-11T14:12:31.942Z",
+    "duration": 73943,
+    "testsRegistered": 1,
+    "passPercent": 100,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "e39f7fda-5781-4379-8ccf-7a37eaf9e435",
+      "title": "",
+      "fullFile": "cypress/e2e/S11_crash_fault_ui.cy.ts",
+      "file": "cypress/e2e/S11_crash_fault_ui.cy.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "0529f882-2caf-49e0-8a52-2cbb128fc87d",
+          "title": "S11 — Crash Fault: Tolerância a Oracle Offline via UI",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "deve agregar respostas com 2/3 oracles quando oracle-1 está offline",
+              "fullTitle": "S11 — Crash Fault: Tolerância a Oracle Offline via UI deve agregar respostas com 2/3 oracles quando oracle-1 está offline",
+              "timedOut": null,
+              "duration": 73704,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": "{\n  \"title\": \"cypress-mochawesome-reporter-screenshots\",\n  \"value\": [\n    [\n      \"/S11_crash_fault_ui.cy.ts/s11-01-all-online.png\",\n      \"/S11_crash_fault_ui.cy.ts/s11-02-oracle1-offline.png\",\n      \"/S11_crash_fault_ui.cy.ts/s11-03-oracle1-recovered.png\"\n    ]\n  ]\n}",
+              "code": "// ── Etapa 1: Baseline — todos os oracles online ──\ncy.visitWithWallet('/oracle-health', 0);\ncy.contains('ORACLE HEALTH', { timeout: 15000 }).should('exist');\ncy.connectWallet();\ncy.get('[data-testid^=\"oracle-card-\"]', { timeout: 30000 }).should('have.length', 3);\n// Leitura on-chain da reputação inicial do Oracle 1 (evidência para o paper)\ncy.task('getOracleReputation', {\n    contractAddress: ORACLE_AGGREGATOR,\n    oracleAddress: ORACLE_1_ADDRESS,\n}).then(function (rep) {\n    cy.wrap(rep).as('reputationOracle1Before');\n    cy.log(\"[on-chain] Reputa\\u00E7\\u00E3o inicial Oracle 1: \".concat(rep));\n});\ncy.screenshot('s11-01-all-online');\n// ── Etapa 2: Derrubar o Oracle 1 via Docker (crash fault) ──\ncy.task('stopOracleContainer', { containerName: ORACLE_1_CONTAINER })\n    .then(function (result) {\n    cy.log(\"Container \".concat(ORACLE_1_CONTAINER, \" parado: \").concat(JSON.stringify(result)));\n});\ncy.wait(3000); // Propagação do crash\n// ── Etapa 3: Criar oferta — dispara oracle request com oracle-1 offline ──\ncy.visitWithWallet('/prosumer', 0);\ncy.connectWallet();\ncy.contains('[role=\"tab\"]', 'Create').click();\ncy.get('#offer-amount').clear().type('300');\ncy.get('#offer-price').clear().type('0.0001');\ncy.get('[data-testid=\"create-offer-submit\"]').click();\n// O sistema deve agregar com apenas 2 oracles (minResponses=2 no contrato)\ncy.contains(/success|confirmed/i, { timeout: 60000 }).should('exist', 'Sistema deve completar agregação com 2/3 oracles ativos (tolerância a crash)');\ncy.wait(15000);\n// ── Etapa 4: Verificar que a oferta foi criada no marketplace ──\n// Prova que o consenso de 2/3 funcionou e o trade foi registrado on-chain\ncy.visitWithWallet('/marketplace', 0);\ncy.connectWallet();\n// Aguarda wagmi conectar ao chain e useReadContract(getActiveOffers) carregar\ncy.wait(8000);\ncy.get('[data-testid^=\"offer-card-\"]', { timeout: 30000 }).should('have.length.at.least', 1, 'Oferta deve aparecer no marketplace — prova que consenso 2/3 foi alcançado');\ncy.screenshot('s11-02-oracle1-offline');\n// ── Etapa 5: Verificar que reputação do Oracle 1 não foi alterada ──\n// Oracle em crash não responde — não recebe penalidade de outlier,\n// apenas perde a chance de ganhar +1 (timeout silencioso)\ncy.task('getOracleReputation', {\n    contractAddress: ORACLE_AGGREGATOR,\n    oracleAddress: ORACLE_1_ADDRESS,\n}).then(function (reputationAfterCrash) {\n    cy.get('@reputationOracle1Before').then(function (reputationBefore) {\n        var before = reputationBefore;\n        var after = reputationAfterCrash;\n        cy.log(\"[on-chain] Reputa\\u00E7\\u00E3o Oracle 1 durante crash: \".concat(before, \" \\u2192 \").concat(after));\n        // Oracle em crash não envia resposta → não é detectado como outlier\n        // Sua reputação NÃO deve ter sofrido penalidade de -5\n        expect(after).to.be.gte(before - 1, \"Oracle em crash n\\u00E3o deve ser penalizado como Byzantine (\".concat(before, \" \\u2192 \").concat(after, \")\"));\n    });\n});\n// ── Etapa 6: Dashboard de saúde com oracle-1 offline ──\ncy.visitWithWallet('/oracle-health', 0);\ncy.connectWallet();\ncy.wait(8000);\n// ── Etapa 7: Reiniciar Oracle 1 e verificar recuperação ──\ncy.task('startOracleContainer', { containerName: ORACLE_1_CONTAINER })\n    .then(function (result) {\n    cy.log(\"Container \".concat(ORACLE_1_CONTAINER, \" reiniciado: \").concat(JSON.stringify(result)));\n});\ncy.wait(15000); // Tempo de inicialização + reconexão à blockchain\ncy.visitWithWallet('/oracle-health', 0);\ncy.connectWallet();\ncy.wait(8000);\ncy.screenshot('s11-03-oracle1-recovered');\n// ── Assertions finais ──\ncy.get('[data-testid^=\"oracle-card-\"]').should('have.length', 3);\ncy.url().should('include', '/oracle-health');",
+              "err": {},
+              "uuid": "2789fb22-2012-43c0-b5f0-924769c70629",
+              "parentUUID": "0529f882-2caf-49e0-8a52-2cbb128fc87d",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "2789fb22-2012-43c0-b5f0-924769c70629"
+          ],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 73704,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.0.1"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "e2e-report",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.4"
+    },
+    "marge": {
+      "options": {
+        "charts": true,
+        "reportPageTitle": "EAON E2E Test Report",
+        "embeddedScreenshots": true,
+        "inlineAssets": true,
+        "saveAllAttempts": false,
+        "reportDir": "results/local/cypress/.jsons",
+        "reportFilename": "e2e-report",
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.3.2"
+    }
+  }
+}

@@ -1,0 +1,111 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 1,
+    "pending": 0,
+    "failures": 0,
+    "start": "2026-04-11T14:09:18.448Z",
+    "end": "2026-04-11T14:11:16.051Z",
+    "duration": 117603,
+    "testsRegistered": 1,
+    "passPercent": 100,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "9276a4e3-da9c-4fd9-9e43-aaee101b8d35",
+      "title": "",
+      "fullFile": "cypress/e2e/S10_oracle_fault_monitoring.cy.ts",
+      "file": "cypress/e2e/S10_oracle_fault_monitoring.cy.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "2168cde6-1e72-4b1e-b5d5-1535d0a84582",
+          "title": "S10 — Oracle Fault Monitoring via UI",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "deve exibir penalização de oracle Bizantino e recuperação em tempo real no dashboard",
+              "fullTitle": "S10 — Oracle Fault Monitoring via UI deve exibir penalização de oracle Bizantino e recuperação em tempo real no dashboard",
+              "timedOut": null,
+              "duration": 117200,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": "{\n  \"title\": \"cypress-mochawesome-reporter-screenshots\",\n  \"value\": [\n    [\n      \"/S10_oracle_fault_monitoring.cy.ts/s10-01-all-online.png\",\n      \"/S10_oracle_fault_monitoring.cy.ts/s10-02-oracle-penalized.png\",\n      \"/S10_oracle_fault_monitoring.cy.ts/s10-03-reputation-recovering.png\"\n    ]\n  ]\n}",
+              "code": "// ── Etapa 1: Oracle Health com todos os nós online ──\ncy.visitWithWallet('/oracle-health', 0);\ncy.contains('ORACLE HEALTH', { timeout: 15000 }).should('exist');\ncy.connectWallet();\n// Aguardar os 3 cards carregarem (polling a cada 5s)\ncy.get('[data-testid^=\"oracle-card-\"]', { timeout: 30000 }).should('have.length', 3);\n// Leitura on-chain da reputação inicial do Oracle 3 (evidência para o paper)\ncy.task('getOracleReputation', {\n    contractAddress: ORACLE_AGGREGATOR,\n    oracleAddress: ORACLE_3_ADDRESS,\n}).then(function (rep) {\n    cy.wrap(rep).as('reputationBefore');\n    cy.log(\"[on-chain] Reputa\\u00E7\\u00E3o inicial Oracle 3: \".concat(rep));\n});\ncy.screenshot('s10-01-all-online');\n// ── Etapa 2: Injetar comportamento Bizantino SOMENTE no Oracle Node 3 ──\n// Usa /admin/oracle/malicious/oracle-3 → apenas o nó 3 retorna leituras outlier (10x)\ncy.injectOracleFault('oracle-3', 'malicious');\ncy.wait(500);\n// ── Etapa 3: Criar uma oferta via /prosumer para disparar um oracle request ──\ncy.visitWithWallet('/prosumer', 0);\ncy.connectWallet();\n// O formulário está na aba \"Create\" → sub-aba \"Fixed Offer\"\ncy.contains('[role=\"tab\"]', 'Create').click();\n// METER001 é o default — sem necessidade de interagir com o Select\ncy.get('#offer-amount').clear().type('500');\ncy.get('#offer-price').clear().type('0.0001');\ncy.get('[data-testid=\"create-offer-submit\"]').click();\n// Aguardar confirmação da transação (oracle request disparado)\ncy.contains(/success|confirmed/i, { timeout: 60000 }).should('exist');\n// Aguardar oracles responderem e OutlierDetected ser emitido (~15s)\ncy.wait(15000);\n// Asserção on-chain: reputação deve ter diminuído (penalidade -5)\ncy.task('getOracleReputation', {\n    contractAddress: ORACLE_AGGREGATOR,\n    oracleAddress: ORACLE_3_ADDRESS,\n}).then(function (reputationAfter) {\n    cy.get('@reputationBefore').then(function (reputationBefore) {\n        var before = reputationBefore;\n        var after = reputationAfter;\n        cy.log(\"[on-chain] Reputa\\u00E7\\u00E3o ap\\u00F3s falha Bizantina: \".concat(before, \" \\u2192 \").concat(after, \" (delta: \").concat(before - after, \")\"));\n        expect(after).to.be.lessThan(before, \"Oracle 3 deveria ser penalizado: reputa\\u00E7\\u00E3o \".concat(before, \" \\u2192 \").concat(after));\n        cy.wrap(after).as('reputationAfterPenalty');\n    });\n});\n// ── Etapa 4: Voltar ao Oracle Health e capturar estado pós-penalização ──\ncy.visitWithWallet('/oracle-health', 0);\ncy.connectWallet();\n// Aguardar novo ciclo de polling (5s)\ncy.wait(8000);\ncy.screenshot('s10-02-oracle-penalized');\n// ── Etapa 5: Restaurar Oracle 3 ao comportamento honesto ──\ncy.injectOracleFault('oracle-3', 'honest');\ncy.wait(500);\n// ── Etapa 6: Disparar 5 requests honestos para recuperar reputação (+1 cada) ──\ncy.visitWithWallet('/prosumer', 0);\ncy.connectWallet();\ncy.contains('[role=\"tab\"]', 'Create').click();\n// Submeter 5 ofertas com o formulário já preenchido\ncy.wrap([1, 2, 3, 4, 5]).each(function () {\n    cy.get('#offer-amount').clear().type('100');\n    cy.get('#offer-price').clear().type('0.0001');\n    cy.get('[data-testid=\"create-offer-submit\"]').click();\n    cy.contains(/success|confirmed/i, { timeout: 60000 }).should('exist');\n    cy.wait(12000); // Aguardar ciclo completo do oracle\n});\n// Asserção on-chain: reputação deve ter aumentado após comportamento honesto\ncy.task('getOracleReputation', {\n    contractAddress: ORACLE_AGGREGATOR,\n    oracleAddress: ORACLE_3_ADDRESS,\n}).then(function (reputationFinal) {\n    cy.get('@reputationAfterPenalty').then(function (reputationAfterPenalty) {\n        cy.get('@reputationBefore').then(function (reputationBefore) {\n            var initial = reputationBefore;\n            var penalty = reputationAfterPenalty;\n            var final = reputationFinal;\n            cy.log(\"[on-chain] Recupera\\u00E7\\u00E3o: inicial=\".concat(initial, \" \\u2192 penalizado=\").concat(penalty, \" \\u2192 recuperado=\").concat(final));\n            expect(final).to.be.greaterThan(penalty, \"Oracle 3 deveria estar se recuperando: \".concat(penalty, \" \\u2192 \").concat(final));\n            expect(final).to.be.greaterThan(0, 'Oracle 3 não deve ser desativado após recuperação');\n        });\n    });\n});\n// ── Etapa 7: Verificar recuperação da reputação no dashboard ──\ncy.visitWithWallet('/oracle-health', 0);\ncy.connectWallet();\ncy.wait(8000);\ncy.screenshot('s10-03-reputation-recovering');\n// ── Assertions finais ──\ncy.get('[data-testid^=\"oracle-card-\"]').should('have.length', 3);\ncy.url().should('include', '/oracle-health');",
+              "err": {},
+              "uuid": "cdb99e8b-c98f-4079-8d4e-7c4b17f8dc2d",
+              "parentUUID": "2168cde6-1e72-4b1e-b5d5-1535d0a84582",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "cdb99e8b-c98f-4079-8d4e-7c4b17f8dc2d"
+          ],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 117200,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.0.1"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "e2e-report",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.4"
+    },
+    "marge": {
+      "options": {
+        "charts": true,
+        "reportPageTitle": "EAON E2E Test Report",
+        "embeddedScreenshots": true,
+        "inlineAssets": true,
+        "saveAllAttempts": false,
+        "reportDir": "results/local/cypress/.jsons",
+        "reportFilename": "e2e-report",
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.3.2"
+    }
+  }
+}

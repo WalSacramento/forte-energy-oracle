@@ -1,0 +1,111 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 1,
+    "pending": 0,
+    "failures": 0,
+    "start": "2026-04-11T14:13:12.679Z",
+    "end": "2026-04-11T14:14:13.089Z",
+    "duration": 60410,
+    "testsRegistered": 1,
+    "passPercent": 100,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "f4f5674f-673d-4b64-82b8-c16dca9eb2b5",
+      "title": "",
+      "fullFile": "cypress/e2e/S9_dutch_auction_ui.cy.ts",
+      "file": "cypress/e2e/S9_dutch_auction_ui.cy.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "5608c468-cfe3-441a-89ee-fdfe90a9dcd5",
+          "title": "S9 — End-to-End UI Dutch Auction Flow",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "deve criar um Dutch Auction, observar decaimento de preço e registrar lance via UI",
+              "fullTitle": "S9 — End-to-End UI Dutch Auction Flow deve criar um Dutch Auction, observar decaimento de preço e registrar lance via UI",
+              "timedOut": null,
+              "duration": 60234,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": "{\n  \"title\": \"cypress-mochawesome-reporter-screenshots\",\n  \"value\": [\n    [\n      \"/S9_dutch_auction_ui.cy.ts/s9-01-auctions-empty.png\",\n      \"/S9_dutch_auction_ui.cy.ts/s9-02-auction-created.png\",\n      \"/S9_dutch_auction_ui.cy.ts/s9-03-auction-detail.png\",\n      \"/S9_dutch_auction_ui.cy.ts/s9-04-price-decayed.png\",\n      \"/S9_dutch_auction_ui.cy.ts/s9-05-place-bid-modal.png\"\n    ]\n  ]\n}",
+              "code": "// ── Etapa 1: Visitar auctions e capturar estado inicial ──\ncy.visitWithWallet('/auctions', 0);\ncy.contains('DUTCH AUCTIONS', { timeout: 15000 }).should('exist');\ncy.connectWallet();\ncy.wait(3000);\ncy.screenshot('s9-01-auctions-empty');\n// ── Etapa 2: Navegar para Prosumer e criar auction ──\ncy.visitWithWallet('/prosumer', 0);\ncy.connectWallet();\n// O formulário está em \"Create\" → \"Dutch Auction\"\ncy.contains('[role=\"tab\"]', 'Create').click();\ncy.contains('[role=\"tab\"]', 'Dutch Auction').click();\n// Preencher formulário CreateAuction\n// startPrice = 0.01 ETH/Wh, minPrice = 0.004 ETH/Wh, duration = 1min (60s)\ncy.get('#auction-energy').clear().type('500');\ncy.get('#auction-start-price').clear().type('0.01');\ncy.get('#auction-min-price').clear().type('0.004');\ncy.get('#auction-duration').clear().type('1'); // 1 minuto (permite observar decaimento em 30s)\n// Submeter\ncy.get('[data-testid=\"create-auction-submit\"]').click();\n// Aguardar confirmação da transação (toast: \"Transaction confirmed!\")\ncy.contains(/confirmed/i, { timeout: 60000 }).should('exist');\ncy.wait(3000);\n// ── Etapa 3: Navegar para /auctions e verificar auction criado ──\ncy.visitWithWallet('/auctions', 0);\ncy.connectWallet();\ncy.wait(5000);\ncy.get('[data-testid^=\"auction-card-\"]', { timeout: 20000 })\n    .should('have.length.at.least', 1);\n// Capturar preço inicial\ncy.get('[data-testid=\"current-price\"]').first().invoke('text').as('initialPrice');\ncy.screenshot('s9-02-auction-created');\n// ── Etapa 4: Navegar para o detalhe da auction ──\ncy.get('[data-testid^=\"auction-card-\"]').first().click();\ncy.wait(3000);\ncy.screenshot('s9-03-auction-detail');\n// ── Etapa 5: Aguardar 30 segundos e verificar decaimento de preço ──\n// Com duration=1min, após 30s o preço deve ter decaído ~50%\ncy.wait(30000);\ncy.screenshot('s9-04-price-decayed');\n// Verificar que o preço diminuiu\ncy.get('[data-testid=\"current-price\"]').invoke('text').then(function (currentPrice) {\n    // currentPrice deve ser menor que o startPrice (0.01 ETH/Wh)\n    // O texto está formatado — apenas verificamos que o elemento existe e mudou\n    expect(currentPrice).to.not.be.empty;\n});\n// ── Etapa 6: Voltar para o card e clicar \"Place Bid\" ──\ncy.visitWithWallet('/auctions', 0);\ncy.connectWallet();\ncy.wait(3000);\ncy.get('[data-testid=\"place-bid-btn\"]').first().should('be.visible');\ncy.screenshot('s9-05-place-bid-modal');\n// ── Assertions ──\ncy.get('[data-testid^=\"auction-card-\"]').should('exist');\ncy.get('[data-testid=\"current-price\"]').should('exist');",
+              "err": {},
+              "uuid": "9263aab6-663f-45cf-a33e-c0db9b873dae",
+              "parentUUID": "5608c468-cfe3-441a-89ee-fdfe90a9dcd5",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "9263aab6-663f-45cf-a33e-c0db9b873dae"
+          ],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 60234,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.0.1"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "e2e-report",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.4"
+    },
+    "marge": {
+      "options": {
+        "charts": true,
+        "reportPageTitle": "EAON E2E Test Report",
+        "embeddedScreenshots": true,
+        "inlineAssets": true,
+        "saveAllAttempts": false,
+        "reportDir": "results/local/cypress/.jsons",
+        "reportFilename": "e2e-report",
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.3.2"
+    }
+  }
+}

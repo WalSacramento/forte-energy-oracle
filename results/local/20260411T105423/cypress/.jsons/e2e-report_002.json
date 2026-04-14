@@ -1,0 +1,111 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 1,
+    "pending": 0,
+    "failures": 0,
+    "start": "2026-04-11T14:12:33.821Z",
+    "end": "2026-04-11T14:13:10.728Z",
+    "duration": 36907,
+    "testsRegistered": 1,
+    "passPercent": 100,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "4a3f0b82-c973-4e93-bba8-25cdbef49c4d",
+      "title": "",
+      "fullFile": "cypress/e2e/S8_marketplace_ui.cy.ts",
+      "file": "cypress/e2e/S8_marketplace_ui.cy.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "0efe7c42-7cb7-4d93-8bf8-c8fe468eefa1",
+          "title": "S8 — End-to-End UI Marketplace Flow",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "deve permitir criar uma oferta, visualizá-la no marketplace e comprá-la via dashboard",
+              "fullTitle": "S8 — End-to-End UI Marketplace Flow deve permitir criar uma oferta, visualizá-la no marketplace e comprá-la via dashboard",
+              "timedOut": null,
+              "duration": 36759,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": "{\n  \"title\": \"cypress-mochawesome-reporter-screenshots\",\n  \"value\": [\n    [\n      \"/S8_marketplace_ui.cy.ts/s8-01-marketplace-empty.png\",\n      \"/S8_marketplace_ui.cy.ts/s8-02-offer-created.png\",\n      \"/S8_marketplace_ui.cy.ts/s8-03-buy-modal.png\",\n      \"/S8_marketplace_ui.cy.ts/s8-04-trade-history.png\"\n    ]\n  ]\n}",
+              "code": "// ── Etapa 1: Visitar marketplace e verificar heading ──\ncy.visitWithWallet('/marketplace', 0);\ncy.contains('ENERGY MARKETPLACE', { timeout: 15000 }).should('exist');\n// ── Etapa 2: Conectar carteira ──\ncy.connectWallet();\n// ── Etapa 3: Navegar para marketplace e tirar screenshot inicial ──\ncy.visitWithWallet('/marketplace', 0);\ncy.wait(3000);\ncy.screenshot('s8-01-marketplace-empty');\n// ── Etapa 4: Navegar para Prosumer e criar uma oferta ──\ncy.visitWithWallet('/prosumer', 0);\ncy.connectWallet();\n// O formulário está na aba \"Create\" → sub-aba \"Fixed Offer\"\ncy.contains('[role=\"tab\"]', 'Create').click();\n// Preencher formulário CreateOffer\ncy.get('#offer-amount').clear().type('1000');\ncy.get('#offer-price').clear().type('0.0001');\n// Submeter a oferta\ncy.get('[data-testid=\"create-offer-submit\"]').click();\n// Aguardar confirmação da transação (toast: \"Transaction confirmed!\")\ncy.contains(/confirmed/i, { timeout: 60000 }).should('exist');\ncy.wait(3000);\n// ── Etapa 5: Navegar para Marketplace como comprador (account 1 ≠ vendedor account 0) ──\ncy.visitWithWallet('/marketplace', 1);\ncy.connectWallet();\ncy.wait(5000); // Aguarda carregamento dos contratos\n// Verificar que ao menos um OfferCard está visível\ncy.get('[data-testid^=\"offer-card-\"]', { timeout: 20000 })\n    .should('have.length.at.least', 1);\ncy.screenshot('s8-02-offer-created');\n// ── Etapa 6: Clicar em Buy e verificar o modal ──\ncy.get('[data-testid=\"buy-btn\"]').first().click();\ncy.get('[data-testid=\"buy-modal\"]', { timeout: 10000 }).should('be.visible');\ncy.screenshot('s8-03-buy-modal');\n// ── Etapa 7: Confirmar a compra ──\ncy.get('[data-testid=\"confirm-buy-btn\"]').click();\n// Aguardar conclusão da transação (toast: \"Transaction confirmed!\")\ncy.contains(/confirmed/i, { timeout: 60000 }).should('exist');\ncy.wait(3000);\n// ── Etapa 8: Navegar para History e verificar trade registrado ──\ncy.visitWithWallet('/history', 0);\ncy.connectWallet();\ncy.wait(5000);\ncy.screenshot('s8-04-trade-history');\n// ── Assertions finais ──\n// Verificar que a página de history carregou\ncy.url().should('include', '/history');",
+              "err": {},
+              "uuid": "903ba9de-51c7-4b64-9df8-05504de7aeb3",
+              "parentUUID": "0efe7c42-7cb7-4d93-8bf8-c8fe468eefa1",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "903ba9de-51c7-4b64-9df8-05504de7aeb3"
+          ],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 36759,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.0.1"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "e2e-report",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.4"
+    },
+    "marge": {
+      "options": {
+        "charts": true,
+        "reportPageTitle": "EAON E2E Test Report",
+        "embeddedScreenshots": true,
+        "inlineAssets": true,
+        "saveAllAttempts": false,
+        "reportDir": "results/local/cypress/.jsons",
+        "reportFilename": "e2e-report",
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.3.2"
+    }
+  }
+}

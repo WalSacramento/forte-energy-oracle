@@ -1,0 +1,36 @@
+{
+  "timestamp": "20260411T105423",
+  "totalDuration": 1199,
+  "phases": {
+    "hardhat": {
+      "status": "passed",
+      "duration": 19,
+      "reports": {
+        "html": "hardhat/hardhat-report.html",
+        "json": "hardhat/hardhat-report.json",
+        "gasReport": "hardhat/gas-report.txt"
+      },
+      "logs": ["logs/hardhat.log", "logs/hardhat-gas.log"]
+    },
+    "k6": {
+      "status": "failed",
+      "duration": 837,
+      "passed": ["eaon-crash-fault","eaon-byzantine-fault"],
+      "failed": ["eaon-baseline","eaon-scalability-5vus","eaon-scalability-10vus","eaon-scalability-20vus","eaon-stress"],
+      "reports": {
+        "directory": "k6/"
+      },
+      "logs": ["logs/k6-setup.log", "logs/k6-teardown.log", "logs/k6-eaon-crash-fault.log", "logs/k6-eaon-byzantine-fault.log", "logs/k6-eaon-baseline.log", "logs/k6-eaon-scalability-5vus.log", "logs/k6-eaon-scalability-10vus.log", "logs/k6-eaon-scalability-20vus.log", "logs/k6-eaon-stress.log"]
+    },
+    "cypress": {
+      "status": "passed",
+      "duration": 343,
+      "reports": {
+        "html": "cypress/e2e-report.html",
+        "json": "cypress/.jsons/",
+        "screenshots": "cypress/screenshots/"
+      },
+      "logs": ["logs/cypress.log", "logs/cypress-teardown.log"]
+    }
+  }
+}
